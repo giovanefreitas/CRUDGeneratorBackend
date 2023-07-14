@@ -1,0 +1,60 @@
+# projeto-exemplo
+
+Iniciando o ambiente:
+
+    cd backend
+    cp .env.exemplo .env
+    npm install
+    docker-compose up -d
+    npm run recreate
+    npm run test
+    npm run dev
+
+Iniciando o frontend:
+
+    cd frontend
+    cp .env.exemplo .env
+    npm install
+    npm run build
+    npm run test
+    npm run dev
+
+## Executando os testes automatizados
+
+No frontend os teste devem ser feitos com a versão de produção, portanto é obrigatório executar o passo `npm run build` antes de executar o passo `npm run test`.
+
+## Pontos chave
+
+Backend com sequelize, express
+
+Frontend com Vue, Bootstrap (puro)
+
+https://icons.getbootstrap.com/
+
+
+# Dicas para o desenvolvimento
+
+Instale o nvm para gerenciar diferentes versões do Node: https://github.com/nvm-sh/nvm#intro
+
+Após instalar use o comando `nvm install 18 && nvm use 18` para utilizar a versão que foi usada para construi este projeto base.
+
+
+Instale o docker para executar o banco de dados local sem ter que instalar ele no sistema operacional (https://www.docker.com/products/docker-desktop/ ou https://docs.docker.com/engine/install/).
+
+Configurar o `esbenp.prettier-vscode` como formatador padrão.
+
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+
+
+Para construir os testes com Cypress use:
+    npm run dev
+    npx cypress open
+
+
+Teste de desempenho:
+
+    cd backend
+    No linux:
+    docker run --rm -v $(pwd)/test:/src -it loadimpact/k6 run /src/load/k6-test.js
+    No Windows:
+    docker run --rm -v $PWD/test:/src -it loadimpact/k6 run /src/load/k6-test.js

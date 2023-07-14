@@ -1,0 +1,387 @@
+<template>
+  <div>
+    <div
+      class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+      <h1 class="h2">Avaliação Diagnóstica</h1>
+
+      <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" @click="editarItem({ id: -1 })">
+            <i class="bi bi-file-earmark-plus"></i>Novo
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" v-show="itensSelecionados.length > 0"
+            @click="excluirSelecionados()">
+            <i class="bi bi-trash-fill"></i>Excluir
+          </button>
+        </div>
+        <div class="btn-group me-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" @click="atualizar(parametrosBusca)">
+            <i class="bi bi-arrow-clockwise"></i>Atualizar
+          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" :disabled="carregandoRegistro"
+            @click="exportar()">
+            <i class="bi bi-file-earmark-arrow-down-fill"></i>Exportar
+          </button>
+        </div>
+        <div class="input-group">
+          <input v-model="parametrosBusca.textoBusca" type="text" class="form-control"
+            aria-label="Text input with segmented dropdown button" @click:append="pesquisar" @keyup.enter="pesquisar" />
+          <button type="button" class="btn btn-outline-secondary" @click="pesquisar">
+            <i class="bi bi-search"></i>
+          </button>
+          <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal"
+            data-bs-target="#pesquisaAvancada" @click="exibirPesquisaAvancada = true">
+            Avançado
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <pesquisa-avancada-pessoa id="pesquisaAvancada" ref="pesquisaAvancada" :value="parametrosBusca"
+      :ativo="exibirPesquisaAvancada" @fechar="exibirPesquisaAvancada = $event" @pesquisar="pesquisar" />
+
+    <mensagem-alerta :mensagem-erro="mensagemErro" :mensagem-sucesso="mensagemSucesso"
+      @limpar-erros="mensagemErro = null"></mensagem-alerta>
+
+    <tabela-dados :colunas="colunas" :items="todosRegistros" :total-registros="totalRegistros"
+      :tamanho-pagina="parametrosBusca.tamanhoPagina" :pagina-atual="parametrosBusca.pagina"
+      :exibirCarregando="carregandoRegistro" :itensSelecionados="itensSelecionados" @exibir-pagina="exibirPagina"
+      @update:itensSelecionados="
+        (selecao) => {
+          itensSelecionados = selecao;
+        }
+      ">
+      <template v-slot:acoes="{ item }">
+        <button type="button" class="btn btn-sm btn-outline-secondary" @click="editarItem(item)">
+          <i class="bi bi-pencil-fill"></i>Editar
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary" @click="excluirItem(item)">
+          <i class="bi bi-trash-fill"></i>Excluir
+        </button>
+      </template>
+    </tabela-dados>
+  </div>
+</template>
+
+<script setup>
+import { ref, watch, onMounted, inject } from "vue";
+import { useRouter, useRoute, isNavigationFailure, NavigationFailureType } from "vue-router";
+import PesquisaAvancadaPessoa from "../components/PesquisaAvancadaPessoa.vue";
+import MensagemAlerta from "../components/MensagemAlerta.vue";
+import constantes from "../helper/constantes";
+
+const router = useRouter();
+const route = useRoute();
+
+const $confirmar = inject("$confirmar");
+
+var todosRegistros = ref([]);
+var itensSelecionados = ref([]);
+var mensagemErro = ref(null);
+var mensagemSucesso = ref(null);
+var carregandoRegistro = ref(false);
+var exibirPesquisaAvancada = ref(false);
+var parametrosBusca = ref({
+  pagina: 1,
+  tamanhoPagina: 5,
+  textoBusca: "",
+  ordenar: "dataAlteracao",
+  ordemInversa: true,
+  nome: "",
+  codigoNacional: "",
+  dataNascimento: "",
+  logradouro: "",
+  bairro: "",
+  municipio: "",
+  uf: "",
+  cep: "",
+  telefone: "",
+  email: "",
+  nomeContato: "",
+});
+var totalRegistros = ref(0);
+var colunas = ref([
+  { text: "Código", value: "id", sortable: true, width: "30em" },
+  { text: "Resumo", value: "resumo", sortable: true, width: "30em" },
+  { text: "Descrição", value: "descricao", sortable: true, width: "30em" },
+  { text: "Ações", value: "acoes", sortable: false, width: "15em" },
+]);
+
+onMounted(() => {
+  console.log("onMounted", route.query);
+  var novaPesquisa = Object.assign({}, parametrosBusca.value);
+  if (route && route.query) {
+    //TODO: Corrigir e remover código duplicado, ver watch
+    novaPesquisa = Object.assign(novaPesquisa, route.query);
+    //a cópia acima copia boolean e inteiro como string, gerando erro
+    //importante conferir o typeof porque nesta tela a ordem default é inversa
+    novaPesquisa.ordemInversa =
+      typeof route.query.ordemInversa == "undefined" ||
+      route.query.ordemInversa === "true";
+    novaPesquisa.pagina = parseInt(parametrosBusca.value.pagina);
+  }
+  atualizar(novaPesquisa);
+});
+
+watch(
+  () => route.query,
+  async (newQuery) => {
+    console.log("newQuery", newQuery);
+    //TODO: Corrigir
+    const novaPesquisa = Object.assign(parametrosBusca.value, newQuery);
+    //a cópia acima copia boolean e inteiro como string, gerando erro
+    //importante conferir o typeof porque nesta tela a ordem default é inversa
+    novaPesquisa.ordemInversa =
+      typeof route.query.ordemInversa == "undefined" ||
+      route.query.ordemInversa === "true";
+    novaPesquisa.pagina = parseInt(parametrosBusca.value.pagina);
+    await atualizar(novaPesquisa);
+  }
+);
+
+function pesquisar(parametros) {
+  mensagemErro.value = null;
+  mensagemSucesso.value = null;
+  // parametrosBusca.value = data;
+  // if (opcoes) {
+  //   parametrosBusca.value.ordenar = data.sortBy[0];
+  //   parametrosBusca.value.ordemInversa = data.sortDesc[0];
+  //   parametrosBusca.value.pagina = data.page;
+  // }
+
+  console.log("pesquisar", parametros);
+  router
+    .push({ path: "/avaliacoes-diagnosticas", query: parametros })
+    .then((failure) => {
+      if (isNavigationFailure(failure, NavigationFailureType.duplicated)) {
+        atualizar(parametros);
+      }
+    });
+}
+
+function atualizar(novaPesquisa) {
+  //papeis = [];
+  exibirPesquisaAvancada.value = false;
+  carregandoRegistro.value = true;
+  mensagemErro.value = null;
+  mensagemSucesso.value = null;
+  const request = new Request(
+    `${import.meta.env.VITE_APP_URL_API}/avaliacoes-diagnosticas?` +
+    new URLSearchParams(novaPesquisa)
+  );
+  fetch(request)
+    .then(async (response) => {
+      if (response.ok) {
+        parametrosBusca.value = novaPesquisa;
+        return response.json();
+      } else {
+        console.log(response.statusText);
+        if (/application\/json/i.test(response.headers.get('Content-Type'))) {
+          const dados = await response.json();
+          if (dados.mensagem) {
+            mensagemErro.value = dados.mensagem;
+          } else {
+            mensagemErro.value = constantes.ERRO_DESCONHECIDO;
+          }
+        } else {
+          response.text().then((body) => console.log("Erro recebido:", body));
+          mensagemErro.value = constantes.ERRO_DESCONHECIDO;
+        }
+      }
+    })
+    .then((data) => {
+      if (data) {
+        todosRegistros.value = data.resultados;
+        totalRegistros.value = data.total;
+      }
+      carregandoRegistro.value = false;
+    })
+    .catch((err) => {
+      console.log(err);
+      carregandoRegistro.value = false;
+      mensagemErro.value = constantes.ERRO_DESCONHECIDO;
+    });
+}
+
+function exportar() {
+  mensagemErro.value = null;
+  mensagemSucesso.value = null;
+
+  carregandoRegistro.value = true;
+  const request = new Request(
+    `${import.meta.env.VITE_APP_URL_API}/avaliacoes-diagnosticas/exportar?` +
+    new URLSearchParams(parametrosBusca.value)
+  );
+  fetch(request)
+    .then((response) => {
+      if (response.ok) {
+        return response.blob();
+      } else {
+        response.text().then((body) => console.log("Erro recebido:", body));
+        throw "Ocorreu um erro na comunicação com o servidor, por favor tente mais tarde. Se o problema persistir contate o suporte.";
+      }
+    })
+    .then((blob) => {
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "avaliacoes-diagnosticas.xlsx";
+      link.click();
+      URL.revokeObjectURL(link.href);
+      carregandoRegistro.value = false;
+    })
+    .catch((err) => {
+      carregandoRegistro.value = false;
+      mensagemErro.value = err;
+    });
+}
+
+function editarItem(item) {
+  router.push({ name: "avaliacao-diagnostica", params: { id: item.id } });
+}
+
+function exibirPagina(novaPagina) {
+  mensagemErro.value = null;
+  mensagemSucesso.value = null;
+  console.log("Carregando página: ", novaPagina);
+  const novaPesquisa = Object.assign({}, parametrosBusca.value);
+  novaPesquisa.pagina = novaPagina;
+  //TODO: tratar o seguinte erro:
+  //parametrosBusca.value.pagina = NaN;
+
+  atualizar(novaPesquisa);
+}
+
+function excluirItem(item) {
+  mensagemErro.value = null;
+  mensagemSucesso.value = null;
+  $confirmar(
+    `Você tem certeza que deseja excluir a avaliação diagnóstica "${item.resumo}"?`
+  ).then((ok) => {
+    if (ok) {
+      const request = new Request(
+        `${import.meta.env.VITE_APP_URL_API}/avaliacoes-diagnosticas/${item.id
+        }`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      carregandoRegistro.value = true;
+      fetch(request)
+        .then(async (response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            console.log(response.statusText);
+            if (/application\/json/i.test(response.headers.get('Content-Type'))) {
+              const dados = await response.json();
+              if (dados.mensagem) {
+                mensagemErro.value = dados.mensagem;
+              } else {
+                mensagemErro.value = constantes.ERRO_DESCONHECIDO;
+              }
+            } else {
+              response.text().then((body) => console.log("Erro recebido:", body));
+              mensagemErro.value = constantes.ERRO_DESCONHECIDO;
+            }
+          }
+        })
+        .then((data) => {
+          const indice = todosRegistros.value.indexOf(item);
+          todosRegistros.value.splice(indice, 1);
+          //selecionados.value.splice(selecionados.value.indexOf(papel), 1);
+          //const idPapel = papel.id;
+          mensagemErro.value =
+            'A avaliação diagnóstica "' +
+            item.resumo +
+            '" foi excluída com sucesso. ';
+          //acao: "Desfazer ação.",
+          //callback: (mensagem) => {
+          //  this.desfazerExclusao(idPapel, indice);
+          //  this.mensagens.splice(this.mensagens.indexOf(mensagem), 1);
+
+          carregandoRegistro.value = false;
+        })
+        .catch((err) => {
+          console.log(err);
+          carregandoRegistro.value = false;
+          mensagemErro.value = constantes.ERRO_DESCONHECIDO;
+        });
+    }
+  });
+}
+
+function excluirSelecionados() {
+  mensagemErro.value = null;
+  mensagemSucesso.value = null;
+  if (itensSelecionados.value.length == 0) return;
+  if (itensSelecionados.value.length == 1) {
+    return this.excluirItem(itensSelecionados.value[0]);
+  }
+
+  $confirmar(
+    `Você tem certeza que deseja excluir as ${itensSelecionados.value.length} avaliações selecionadas?`
+  ).then((ok) => {
+    if (ok) {
+      const listaID = itensSelecionados.value.map((item) => item.id);
+
+      const request = new Request(
+        `${import.meta.env.VITE_APP_URL_API
+        }/avaliacoes-diagnosticas/${listaID.join(",")}`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      carregandoRegistro.value = true;
+      fetch(request)
+        .then(async (response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            console.log(response.statusText);
+            if (/application\/json/i.test(response.headers.get('Content-Type'))) {
+              const dados = await response.json();
+              if (dados.mensagem) {
+                mensagemErro.value = dados.mensagem;
+              } else {
+                mensagemErro.value = constantes.ERRO_DESCONHECIDO;
+              }
+            } else {
+              response.text().then((body) => console.log("Erro recebido:", body));
+              mensagemErro.value = constantes.ERRO_DESCONHECIDO;
+            }
+          }
+        })
+        .then((data) => {
+          (mensagemErro.value =
+            "Foram excluídas " +
+            itensSelecionados.value.length +
+            " avaliações. "),
+            //acao: "Desfazer ação.",
+            //callback: (mensagem) => {
+            //  this.desfazerExclusao(listaID.join(","), 0);
+            //  this.mensagens.splice(this.mensagens.indexOf(mensagem), 1);
+            //},
+
+            (itensSelecionados.value = []);
+          atualizar(parametrosBusca.value);
+        })
+        .catch((err) => {
+          carregandoRegistro.value = false;
+          console.log(err);
+          mensagemErro.value = constantes.ERRO_DESCONHECIDO;
+        });
+    }
+  });
+}
+</script>
+
+<style>
+</style>

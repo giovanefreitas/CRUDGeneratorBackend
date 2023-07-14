@@ -25,6 +25,42 @@ npm install
 npm start
 ```
 
-## Disclaimer
+4. Testando
 
-Use at your own risk; not a supported MongoDB product
+wget http://localhost:5050/exportar/64ac2f9f5cb711f1fd3c1e4d -O projeto.zip ; Expand-Archive "projeto.zip" -DestinationPath "./" -Force ; del projeto.zip
+
+## Modelo de dados
+
+{
+	"name": "Projeto XPTO",
+	"entities": [
+		
+	],
+	"screens": [
+        {
+			"name": "produto", >>>> usado nas rotas do Vuejs
+			"label": "Cadastro de produto",
+            "entity": "Produto",
+			"type": "grid",
+			"subfields": [...]
+        },
+        ...
+    ]
+}
+
+Screen element:
+
+{
+    "id": "subfields_0",
+    "subheader_update": true,  <<<<< IGNORAR NO FRONTEND
+    "order_rank": 0,  <<<<< IGNORAR NO FRONTEND
+    "name": "header",
+    "label": "Título",
+    "label_display": "Título da seção",
+    "type": "header",
+    "tagname": "h1",
+    "textalign": "text-left",
+    "subfields": [],
+    "active": true,
+    "placeholder": "CEP",
+}

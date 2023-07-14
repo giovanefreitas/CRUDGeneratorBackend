@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "vue.volar",
+    "dbaeumer.vscode-eslint",
+    "eamodio.gitlens",
+    "p42ai.refactor",
+    "esbenp.prettier-vscode",
+    "sonarsource.sonarlint-vscode",
+    "tyriar.sort-lines",
+    "Gruntfuggly.todo-tree"
+  ]
+}
