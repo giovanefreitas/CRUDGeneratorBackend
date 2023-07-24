@@ -2,7 +2,7 @@
   <div>
     <div
       class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-      <h1 class="h2">Avaliação Diagnóstica</h1>
+      <h1 class="h2"><%= screen.label %></h1>
 
       <div class="btn-toolbar mb-2 mb-md-0">
         <div class="btn-group me-2">
@@ -151,7 +151,7 @@ function pesquisar(parametros) {
 
   console.log("pesquisar", parametros);
   router
-    .push({ path: "/avaliacoes-diagnosticas", query: parametros })
+    .push({ path: "/lista-<%= screen.name %>", query: parametros })
     .then((failure) => {
       if (isNavigationFailure(failure, NavigationFailureType.duplicated)) {
         atualizar(parametros);
@@ -166,7 +166,7 @@ function atualizar(novaPesquisa) {
   mensagemErro.value = null;
   mensagemSucesso.value = null;
   const request = new Request(
-    `${import.meta.env.VITE_APP_URL_API}/avaliacoes-diagnosticas?` +
+    `${import.meta.env.VITE_APP_URL_API}/<%= screen.plural_name %>?` +
     new URLSearchParams(novaPesquisa)
   );
   fetch(request)
@@ -209,7 +209,7 @@ function exportar() {
 
   carregandoRegistro.value = true;
   const request = new Request(
-    `${import.meta.env.VITE_APP_URL_API}/avaliacoes-diagnosticas/exportar?` +
+    `${import.meta.env.VITE_APP_URL_API}/<%= screen.plural_name %>/exportar?` +
     new URLSearchParams(parametrosBusca.value)
   );
   fetch(request)
@@ -224,7 +224,7 @@ function exportar() {
     .then((blob) => {
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
-      link.download = "avaliacoes-diagnosticas.xlsx";
+      link.download = "/lista-<%= screen.name %>.xlsx";
       link.click();
       URL.revokeObjectURL(link.href);
       carregandoRegistro.value = false;
@@ -236,7 +236,7 @@ function exportar() {
 }
 
 function editarItem(item) {
-  router.push({ name: "avaliacao-diagnostica", params: { id: item.id } });
+  router.push({ name: "<%= screen.name %>", params: { id: item.id } });
 }
 
 function exibirPagina(novaPagina) {
@@ -255,11 +255,11 @@ function excluirItem(item) {
   mensagemErro.value = null;
   mensagemSucesso.value = null;
   $confirmar(
-    `Você tem certeza que deseja excluir a avaliação diagnóstica "${item.resumo}"?`
+    `Você tem certeza que deseja excluir a <%= screen.label %> "${item.resumo}"?`
   ).then((ok) => {
     if (ok) {
       const request = new Request(
-        `${import.meta.env.VITE_APP_URL_API}/avaliacoes-diagnosticas/${item.id
+        `${import.meta.env.VITE_APP_URL_API}/<%= screen.plural_name %>/${item.id
         }`,
         {
           method: "DELETE",
@@ -295,7 +295,7 @@ function excluirItem(item) {
           //selecionados.value.splice(selecionados.value.indexOf(papel), 1);
           //const idPapel = papel.id;
           mensagemErro.value =
-            'A avaliação diagnóstica "' +
+            'A <%= screen.label %> "' +
             item.resumo +
             '" foi excluída com sucesso. ';
           //acao: "Desfazer ação.",
@@ -323,14 +323,14 @@ function excluirSelecionados() {
   }
 
   $confirmar(
-    `Você tem certeza que deseja excluir as ${itensSelecionados.value.length} avaliações selecionadas?`
+    `Você tem certeza que deseja excluir os ${itensSelecionados.value.length} registros selecionados?`
   ).then((ok) => {
     if (ok) {
       const listaID = itensSelecionados.value.map((item) => item.id);
 
       const request = new Request(
         `${import.meta.env.VITE_APP_URL_API
-        }/avaliacoes-diagnosticas/${listaID.join(",")}`,
+        }/<%= screen.plural_name %>/${listaID.join(",")}`,
         {
           method: "DELETE",
           headers: {

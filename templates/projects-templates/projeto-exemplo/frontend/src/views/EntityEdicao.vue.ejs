@@ -4,7 +4,7 @@
       class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
       <div class="row">
         <div class="col-1">
-          <button type="button" class="btn btn-link" @click="router.push('/avaliacoes-diagnosticas')">
+          <button type="button" class="btn btn-link" @click="router.push('/<%= screen.plural_name %>')">
             <i class="bi bi-arrow-left-circle"></i>
           </button>
         </div>
@@ -13,7 +13,7 @@
         </div>
       </div>
 
-      <div class="btn-toolbar mb-2 mb-md-0" v-show="avaliacaoDiagnosticaSelecionada.id">
+      <div class="btn-toolbar mb-2 mb-md-0" v-show="<%= screen.name %>Selecionada.id">
         <div class="btn-group me-2">
           <button type="button" class="btn btn-sm btn-outline-secondary" @click="criarNovo()">
             <i class="bi bi-file-earmark-plus"></i>Novo
@@ -30,7 +30,7 @@
           <button type="button" class="btn btn-sm btn-outline-secondary" @click="recarregar(route.params.id)">
             <i class="bi bi-arrow-clockwise"></i>Atualizar
           </button>
-          <button type="button" class="btn btn-sm btn-outline-secondary" :disabled="carregandoAvaliacaoDiagnostica"
+          <button type="button" class="btn btn-sm btn-outline-secondary" :disabled="carregando<%= screen.entity %>"
             @click="exportar()">
             <i class="bi bi-file-earmark-arrow-down-fill"></i>Imprimir
           </button>
@@ -38,7 +38,7 @@
       </div>
     </div>
 
-    <indicador-carregando v-if="carregandoAvaliacaoDiagnostica" />
+    <indicador-carregando v-if="carregando<%= screen.entity %>" />
 
     <mensagem-alerta :mensagem-erro="mensagemErro" :mensagem-sucesso="mensagemSucesso"
       @limpar-erros="mensagemErro = null" @limpar-sucessos="mensagemSucesso = null"></mensagem-alerta>
@@ -48,31 +48,31 @@
         <div class="row">
           <div class="col-12">
             <label>Código: </label>
-            <span>{{ avaliacaoDiagnosticaSelecionada.id }}</span>
+            <span>{{ <%= screen.name %>Selecionada.id }}</span>
           </div>
         </div>
 
         <div class="col-8 mb-3">
           <label for="input-nome" class="form-label">Resumo</label>
-          <input id="input-nome" class="form-control" v-model="avaliacaoDiagnosticaSelecionada.resumo" autofocus />
+          <input id="input-nome" class="form-control" v-model="<%= screen.name %>Selecionada.resumo" autofocus />
         </div>
         <div class="col-8 mb-3">
           <label for="input-nome" class="form-label">Descrição</label>
-          <textarea id="input-nome" class="form-control" rows="4" v-model="avaliacaoDiagnosticaSelecionada.descricao" />
+          <textarea id="input-nome" class="form-control" rows="4" v-model="<%= screen.name %>Selecionada.descricao" />
         </div>
       </div>
     </form>
 
     <div class="btn-toolbar mb-2 mb-md-0">
       <div class="btn-group me-2">
-        <button type="button" class="btn btn-outline-danger" @click="router.push('/avaliacoes-diagnosticas')">
+        <button type="button" class="btn btn-outline-danger" @click="router.push('/<%= screen.plural_name %>')">
           Cancelar
         </button>
       </div>
       <div class="btn-group me-2">
         <button type="button" class="btn btn-primary" @click="gravar">
-          <span v-if="!gravandoAvaliacaoDiagnostica">Gravar</span>
-          <span v-if="gravandoAvaliacaoDiagnostica">
+          <span v-if="!gravando<%= screen.entity %>">Gravar</span>
+          <span v-if="gravando<%= screen.entity %>">
             <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
             Gravando...
           </span>
@@ -96,7 +96,7 @@ const route = useRoute();
 
 const $confirmar = inject("$confirmar");
 
-const avaliacaoDiagnosticaEmBranco = () => ({
+const <%= screen.name %>EmBranco = () => ({
   resumo: "",
   descricao: "",
 });
@@ -104,12 +104,12 @@ const avaliacaoDiagnosticaEmBranco = () => ({
 var modeloAlterado = ref(false);
 var mensagemErro = ref(null);
 var mensagemSucesso = ref(null);
-var carregandoAvaliacaoDiagnostica = ref(false);
-var gravandoAvaliacaoDiagnostica = ref(false);
+var carregando<%= screen.entity %> = ref(false);
+var gravando<%= screen.entity %> = ref(false);
 var excluindoRegistro = ref(false);
-var avaliacaoDiagnosticaSelecionada = ref(avaliacaoDiagnosticaEmBranco());
+var <%= screen.name %>Selecionada = ref(<%= screen.name %>EmBranco());
 
-carregarAvaliacaoDiagnostica(route.params.id);
+carregar<%= screen.entity %>(route.params.id);
 
 onBeforeRouteLeave((to, from, next) => {
   if (modeloAlterado.value) {
@@ -125,8 +125,8 @@ onBeforeRouteLeave((to, from, next) => {
 
 const tituloFormulario = computed(() => {
   return (
-    (avaliacaoDiagnosticaSelecionada.value.id ? "Editar" : "Nova") +
-    " Avaliação Diagnóstica"
+    (<%= screen.name %>Selecionada.value.id ? "Editar" : "Nova") +
+    " <%= screen.label %>"
   );
 });
 
@@ -134,7 +134,7 @@ watch(
   () => route.params,
   async (newParams) => {
     console.log("newParams", newParams);
-    carregarAvaliacaoDiagnostica(newParams.id);
+    carregar<%= screen.entity %>(newParams.id);
   }
 );
 
@@ -149,24 +149,24 @@ function recarregar(id) {
     $confirmar("Tem certeza que deseja descartar todas as alterações?").then(
       (res) => {
         if (res) {
-          carregarAvaliacaoDiagnostica(id);
+          carregar<%= screen.entity %>(id);
         }
       }
     );
   } else {
-    carregarAvaliacaoDiagnostica(id);
+    carregar<%= screen.entity %>(id);
   }
 }
 
-function carregarAvaliacaoDiagnostica(id) {
+function carregar<%= screen.entity %>(id) {
   mensagemErro.value = null;
   mensagemSucesso.value = null;
   if (id && id > 0) {
     const request = new Request(
-      `${import.meta.env.VITE_APP_URL_API}/avaliacoes-diagnosticas/${id}`
+      `${import.meta.env.VITE_APP_URL_API}/<%= screen.plural_name %>/${id}`
     );
 
-    carregandoAvaliacaoDiagnostica.value = true;
+    carregando<%= screen.entity %>.value = true;
 
     fetch(request)
       .then(async (response) => {
@@ -175,7 +175,7 @@ function carregarAvaliacaoDiagnostica(id) {
             return response.json();
           } else {
             mensagemErro.value = constantes.ERRO_REGISTRO_NAO_ENCONTRADO;
-            return Promise.resolve(avaliacaoDiagnosticaEmBranco());
+            return Promise.resolve(<%= screen.name %>EmBranco());
           }
         } else {
           console.log(response.statusText);
@@ -193,16 +193,16 @@ function carregarAvaliacaoDiagnostica(id) {
         }
       })
       .then((data) => {
-        avaliacaoDiagnosticaSelecionada.value = data;
-        carregandoAvaliacaoDiagnostica.value = false;
+        <%= screen.name %>Selecionada.value = data;
+        carregando<%= screen.entity %>.value = false;
       })
       .catch((err) => {
         console.log(err);
-        carregandoAvaliacaoDiagnostica.value = false;
+        carregando<%= screen.entity %>.value = false;
         mensagemErro.value = constantes.ERRO_DESCONHECIDO;
       });
   } else {
-    avaliacaoDiagnosticaSelecionada.value = avaliacaoDiagnosticaEmBranco();
+    <%= screen.name %>Selecionada.value = <%= screen.name %>EmBranco();
   }
 }
 
@@ -216,29 +216,29 @@ function gravar() {
   mensagemErro.value = null;
   mensagemSucesso.value = null;
 
-  const parametroId = avaliacaoDiagnosticaSelecionada.value.id
-    ? `/${avaliacaoDiagnosticaSelecionada.value.id}`
+  const parametroId = <%= screen.name %>Selecionada.value.id
+    ? `/${<%= screen.name %>Selecionada.value.id}`
     : "";
-  const metodoHttp = avaliacaoDiagnosticaSelecionada.value.id ? "PUT" : "POST";
+  const metodoHttp = <%= screen.name %>Selecionada.value.id ? "PUT" : "POST";
 
   const request = new Request(
-    `${import.meta.env.VITE_APP_URL_API}/avaliacoes-diagnosticas` + parametroId,
+    `${import.meta.env.VITE_APP_URL_API}/<%= screen.plural_name %>` + parametroId,
     {
       method: metodoHttp,
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(avaliacaoDiagnosticaSelecionada.value),
+      body: JSON.stringify(<%= screen.name %>Selecionada.value),
     }
   );
 
-  console.log("Gravando item: ", avaliacaoDiagnosticaSelecionada.value);
+  console.log("Gravando item: ", <%= screen.name %>Selecionada.value);
 
-  gravandoAvaliacaoDiagnostica.value = true;
+  gravando<%= screen.entity %>.value = true;
   fetch(request)
     .then(async (response) => {
       if (response.ok) {
-        mensagemSucesso.value = "Avaliação Diagnóstica atualizada com sucesso.";
+        mensagemSucesso.value = "<%= screen.label %> atualizada com sucesso.";
         return response.json();
       } else {
         console.log(response.statusText);
@@ -256,16 +256,16 @@ function gravar() {
       }
     })
     .then((data) => {
-      avaliacaoDiagnosticaSelecionada.value = Object.assign(
-        avaliacaoDiagnosticaSelecionada.value,
+      <%= screen.name %>Selecionada.value = Object.assign(
+        <%= screen.name %>Selecionada.value,
         data
       );
       modeloAlterado.value = false;
-      gravandoAvaliacaoDiagnostica.value = false;
+      gravando<%= screen.entity %>.value = false;
     })
     .catch((err) => {
       console.log(err);
-      gravandoAvaliacaoDiagnostica.value = false;
+      gravando<%= screen.entity %>.value = false;
       mensagemErro.value = constantes.ERRO_DESCONHECIDO;
     });
 }
@@ -274,11 +274,11 @@ function excluirRegistro() {
   mensagemErro.value = null;
   mensagemSucesso.value = null;
   $confirmar(
-    `Você tem certeza que deseja excluir a avaliação diagnóstica "${avaliacaoDiagnosticaSelecionada.value.resumo}"?`
+    `Você tem certeza que deseja excluir a <%= screen.label %> "${<%= screen.name %>Selecionada.value.resumo}"?`
   ).then((ok) => {
     if (ok) {
       const request = new Request(
-        `${import.meta.env.VITE_APP_URL_API}/avaliacoes-diagnosticas/${avaliacaoDiagnosticaSelecionada.value.id
+        `${import.meta.env.VITE_APP_URL_API}/<%= screen.plural_name %>/${<%= screen.name %>Selecionada.value.id
         }`,
         {
           method: "DELETE",
@@ -293,11 +293,11 @@ function excluirRegistro() {
         .then(async (response) => {
           if (response.ok) {
             mensagemSucesso.value =
-              'A avaliação diagnóstica "' +
-              avaliacaoDiagnosticaSelecionada.value.resumo +
+              'A <%= screen.label %> "' +
+              <%= screen.name %>Selecionada.value.resumo +
               '" foi excluída com sucesso. ';
-            avaliacaoDiagnosticaSelecionada.value =
-              avaliacaoDiagnosticaEmBranco();
+            <%= screen.name %>Selecionada.value =
+              <%= screen.name %>EmBranco();
             return Promise.resolve();
           } else {
             console.log(response.statusText);
@@ -328,6 +328,6 @@ function criarNovo() {
   mensagemSucesso.value = null;
   mensagemErro.value = "";
   mensagemSucesso.value = "";
-  avaliacaoDiagnosticaSelecionada.value = avaliacaoDiagnosticaEmBranco();
+  <%= screen.name %>Selecionada.value = <%= screen.name %>EmBranco();
 }
 </script>

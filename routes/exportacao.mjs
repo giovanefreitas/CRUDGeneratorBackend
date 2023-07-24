@@ -25,7 +25,7 @@ async function addFilesToZip(dirents, formData, zip, currentDir) {
         for (const screen of formData.screens) {
           zip.addFile(
             currentDir + element.name.replace("Entity", screen.entity).replace(/\.[^\.]+$/, ""),
-            Buffer.from(renderTemplate(urlPath, screen), "utf8")
+            Buffer.from(renderTemplate(urlPath, { screen }), "utf8")
           );
         }
       } else {
