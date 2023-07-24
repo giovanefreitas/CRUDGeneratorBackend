@@ -1,11 +1,13 @@
-import { createRouter, createWebHistory } from 'vue-router'
-import ListaAvaliacaoDiagnostica from '../views/ListaAvaliacaoDiagnostica.vue'
-import PaginaInicial from '../views/PaginaInicial.vue'
-import Selfxss from '../views/Selfxss.vue'
+import { createRouter, createWebHistory } from "vue-router";
+<% screens.forEach(function(screen){ -%>
+import <%= screen.entity %>Listagem from "../views/<%= screen.entity %>Listagem.vue";
+import <%= screen.entity %>Edicao from "../views/<%= screen.entity %>Edicao.vue";
+<% }); -%>
+import PaginaInicial from "../views/PaginaInicial.vue";
+import Selfxss from "../views/Selfxss.vue";
 import Dashboard from "../views/Dashboard.vue";
 import Admin from "../views/Admin.vue";
 import Erro404 from "../views/Erro404.vue";
-import AvaliacaoDiagnostica from '../views/AvaliacaoDiagnostica.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,24 +25,26 @@ const router = createRouter({
         requiresAuth: false,
       },
     },
+    <% screens.forEach(function(screen){ %>      
     {
-      path: "/avaliacoes-diagnosticas",
-      name: "avaliacoes-diagnosticas",
-      component: ListaAvaliacaoDiagnostica,
+      path: "/lista-<%= screen.name %>",
+      name: "lista-<%= screen.name %>",
+      component: <%= screen.entity %>Listagem,
       meta: {
         requiresAuth: true,
         is_admin: false,
       },
     },
     {
-      path: "/avaliacoes-diagnosticas/:id",
-      name: "avaliacao-diagnostica",
-      component: AvaliacaoDiagnostica,
+      path: "/<%= screen.name %>/:id",
+      name: "<%= screen.name %>",
+      component: <%= screen.entity %>Edicao,
       meta: {
         requiresAuth: true,
         is_admin: false,
       },
     },
+    <% }); %>
     {
       path: "/dashboard",
       name: "dashboard",
@@ -58,15 +62,15 @@ const router = createRouter({
         is_admin: true,
       },
     },
-    {
-      path: "/*",
-      name: "erro404",
-      component: Erro404,
-      meta: {
-        requiresAuth: false,
-        is_admin: false,
-      },
-    },
+    //{
+    //  path: "/*",
+    //  name: "erro404",
+    //  component: Erro404,
+    //  meta: {
+    //    requiresAuth: false,
+    //    is_admin: false,
+    //  },
+    //},
   ]
 })
 

@@ -7,8 +7,8 @@ import fs from "fs";
 
 const router = express.Router();
 
-function addFilesToZip(dirents, formData, zip, currentDir) {
-  dirents.forEach((element) => {
+async function addFilesToZip(dirents, formData, zip, currentDir) {
+  for (const element of dirents) {
     let urlPath = element.path + "/" + element.name;
     if (element.isDirectory()) {
       let direntsSubDir = fs.readdirSync(urlPath, {
@@ -21,15 +21,24 @@ function addFilesToZip(dirents, formData, zip, currentDir) {
         currentDir + element.name + "/"
       );
     } else if (element.name.endsWith(".ejs")) {
-      zip.addFile(
-        currentDir + element.name.replace(/\.[^\.]+$/, ""),
-        Buffer.from(renderTemplate(urlPath, formData), "utf8")
-      );
+      if (element.name.startsWith("Entity")) {
+        for (const screen of formData.screens) {
+          zip.addFile(
+            currentDir + element.name.replace("Entity", screen.entity).replace(/\.[^\.]+$/, ""),
+            Buffer.from(renderTemplate(urlPath, screen), "utf8")
+          );
+        }
+      } else {
+        zip.addFile(
+          currentDir + element.name.replace(/\.[^\.]+$/, ""),
+          Buffer.from(renderTemplate(urlPath, formData), "utf8")
+        );
+      }
     } else {
       console.log("Adicioando arquivo estático: " + element.name);
       zip.addLocalFile(urlPath, currentDir, element.name);
     }
-  });
+  }
 }
 
 // Get a list of 50 cadastros
@@ -46,10 +55,10 @@ router.get("/:id", async (req, res) => {
 
     let zip = new AdmZip();
 
-    addFilesToZip(dirents, formData, zip, "./");
-
-    res.attachment(req.params.id + ".zip");
-    res.send(zip.toBuffer()).status(200);
+    addFilesToZip(dirents, formData, zip, "").then(() => {
+      res.attachment(req.params.id + ".zip");
+      res.send(zip.toBuffer()).status(200);
+    });
   }
 });
 
