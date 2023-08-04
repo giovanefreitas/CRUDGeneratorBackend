@@ -58,8 +58,10 @@ async function generateScreen(connection, owner, table) {
 
 async function generateFields(connection, owner, tableName) {
   const result = await connection.execute(
-    `SELECT column_name, data_type, data_length, data_precision, nullable 
-    FROM all_tab_columns WHERE owner = :owner AND table_name = :tableName`,
+    `SELECT tc.column_name, tc.data_type, tc.data_length, tc.data_precision, tc.nullable, cc.COMMENTS  
+    FROM all_tab_columns tc
+    	LEFT JOIN ALL_COL_COMMENTS cc ON tc.OWNER = cc.OWNER AND tc.TABLE_NAME = cc.TABLE_NAME  AND tc.COLUMN_NAME = cc.COLUMN_NAME 
+    WHERE tc.owner = :owner AND tc.table_name = :tableName`,
     { owner, tableName }
   );
 
@@ -69,7 +71,7 @@ async function generateFields(connection, owner, tableName) {
     fields.push({
       id: column.COLUMN_NAME,
       name: column.COLUMN_NAME,
-      label: column.COLUMN_NAME,
+      label: column.COMMENTS || column.COLUMN_NAME,
       type: translateType(column.DATA_TYPE),
       subfields: [],
     });
