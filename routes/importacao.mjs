@@ -24,7 +24,7 @@ router.post("/oracle", async (req, res) => {
 
     for (let table of tables) {
       project.screens.push(
-        await generateScreen(connection, req.body.owner, table.TABLE_NAME)
+        await generateScreen(connection, req.body.owner, table)
       );
     }
 
@@ -36,7 +36,8 @@ router.post("/oracle", async (req, res) => {
 
 async function findTables(connection, owner) {
   const result = await connection.execute(
-    `SELECT TABLE_NAME FROM all_tables WHERE OWNER = :owner`,
+    `SELECT t.TABLE_NAME, c.COMMENTS  FROM all_tables t LEFT JOIN all_tab_comments c 
+    ON t.OWNER = c.OWNER AND t.TABLE_NAME  = c.TABLE_NAME  WHERE t.OWNER = :owner`,
     { owner }
   );
 
@@ -45,12 +46,12 @@ async function findTables(connection, owner) {
 
 async function generateScreen(connection, owner, table) {
   let screen = {
-    label: "Cadastro de " + normalizeText(table),
-    entity: toCamelCase(table),
-    name: singularIdentifier(table),
-    plural_name: pluralIdentifier(table),
+    label: table.COMMENTS || "Cadastro de " + normalizeText(table.TABLE_NAME),
+    entity: toCamelCase(table.TABLE_NAME),
+    name: singularIdentifier(table.TABLE_NAME),
+    plural_name: pluralIdentifier(table.TABLE_NAME),
     type: "grid",
-    subfields: await generateFields(connection, owner, table),
+    subfields: await generateFields(connection, owner, table.TABLE_NAME),
   };
 
   return screen;
