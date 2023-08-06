@@ -57,6 +57,7 @@ async function generateScreen(connection, owner, table, commentAsLabel) {
   let screen = {
     label,
     entity: toCamelCase(table.TABLE_NAME),
+    table: table.TABLE_NAME,
     name: singularIdentifier(table.TABLE_NAME),
     plural_name: pluralIdentifier(table.TABLE_NAME),
     type: "grid",
@@ -86,8 +87,7 @@ async function generateFields(connection, owner, tableName, commentAsLabel) {
   for (let column of result.rows) {
     let label = "";
     if (commentAsLabel) {
-      label =
-        column.COMMENTS || normalizeText(column.COLUMN_NAME);
+      label = column.COMMENTS || normalizeText(column.COLUMN_NAME);
     } else {
       label = normalizeText(column.COLUMN_NAME);
     }
@@ -95,6 +95,7 @@ async function generateFields(connection, owner, tableName, commentAsLabel) {
     fields.push({
       id: column.COLUMN_NAME,
       name: column.COLUMN_NAME,
+      column: column.COLUMN_NAME,
       label,
       type: translateType(column.DATA_TYPE),
       subfields: [],
