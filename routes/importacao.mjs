@@ -39,7 +39,7 @@ router.post("/oracle", async (req, res) => {
 async function findTables(connection, owner) {
   const result = await connection.execute(
     `SELECT t.TABLE_NAME, c.COMMENTS  FROM all_tables t LEFT JOIN all_tab_comments c 
-    ON t.OWNER = c.OWNER AND t.TABLE_NAME  = c.TABLE_NAME  WHERE t.OWNER = :owner AND t.table_name = 'TB_INFRACAOAITE'
+    ON t.OWNER = c.OWNER AND t.TABLE_NAME  = c.TABLE_NAME  WHERE t.OWNER = :owner AND t.table_name = 'AUD_HIST_AUXILIAR_EMPRESA'
     ORDER BY t.TABLE_NAME `,
     { owner }
   );
@@ -69,6 +69,13 @@ async function generateScreen(connection, owner, table, commentAsLabel) {
     commentAsLabel
   );
 
+  const tables = await generateTables(
+    connection,
+    owner,
+    table.TABLE_NAME,
+    commentAsLabel
+  );
+
   let screen = {
     label,
     entity: toCamelCase(table.TABLE_NAME),
@@ -76,7 +83,7 @@ async function generateScreen(connection, owner, table, commentAsLabel) {
     name: singularIdentifier(table.TABLE_NAME),
     plural_name: pluralIdentifier(table.TABLE_NAME),
     type: "grid",
-    subfields: relationships.concat(subfields),
+    subfields: relationships.concat(subfields).concat(tables),
   };
 
   return screen;
@@ -155,7 +162,7 @@ async function generateRelationships(
                       AND a.constraint_type = 'R'
                       AND substr(a.table_name,1,4) != 'BIN$'
                       AND substr(a.table_name,1,3) != 'DR$'
-                      AND instr(upper(a.table_name),upper(:tableName) ) > 0
+                      AND a.table_name = :tableName
                   GROUP BY a.owner, a.table_name, a.constraint_name
               ) d
             WHERE c.owner = :owner
@@ -221,6 +228,50 @@ async function generateRelationships(
       referencedSchema: column.R_OWNER,
       referencedColumns: referencedColumns,
       subfields: [],
+    });
+  }
+
+  return fields;
+}
+
+async function generateTables(connection, owner, tableName, commentAsLabel) {
+  const sql = `SELECT c.owner, c.TABLE_NAME
+              FROM
+                  all_constraints c
+              WHERE c.CONSTRAINT_TYPE = 'R'
+                  AND r_constraint_name in (
+                            SELECT cr.constraint_name 
+                            FROM all_constraints cr 
+                            WHERE cr.OWNER = :owner
+                                AND cr.table_name = :tableName)`;
+
+  const result = await connection.execute(sql, { owner, tableName });
+
+  let fields = [];
+
+  for (let table of result.rows) {
+    const relationships = await generateRelationships(
+      connection,
+      owner,
+      table.TABLE_NAME,
+      commentAsLabel
+    );
+
+    const subfields = await generateFields(
+      connection,
+      owner,
+      table.TABLE_NAME,
+      commentAsLabel
+    );
+
+    fields.push({
+      id: table.TABLE_NAME,
+      name: table.TABLE_NAME,
+      schema: table.OWNER,
+      tableName: table.TABLE_NAME,
+      label: normalizeText(table.TABLE_NAME),
+      type: "table",
+      subfields: relationships.concat(subfields),
     });
   }
 
