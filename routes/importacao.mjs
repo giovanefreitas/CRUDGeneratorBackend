@@ -39,7 +39,7 @@ router.post("/oracle", async (req, res) => {
 async function findTables(connection, owner) {
   const result = await connection.execute(
     `SELECT t.TABLE_NAME, c.COMMENTS  FROM all_tables t LEFT JOIN all_tab_comments c 
-    ON t.OWNER = c.OWNER AND t.TABLE_NAME  = c.TABLE_NAME  WHERE t.OWNER = :owner
+    ON t.OWNER = c.OWNER AND t.TABLE_NAME  = c.TABLE_NAME  WHERE t.OWNER = :owner AND t.table_name = 'TB_INFRACAOAITE'
     ORDER BY t.TABLE_NAME `,
     { owner }
   );
@@ -54,6 +54,21 @@ async function generateScreen(connection, owner, table, commentAsLabel) {
   } else {
     label = normalizeText(table.TABLE_NAME);
   }
+
+  const relationships = await generateRelationships(
+    connection,
+    owner,
+    table.TABLE_NAME,
+    commentAsLabel
+  );
+
+  const subfields = await generateFields(
+    connection,
+    owner,
+    table.TABLE_NAME,
+    commentAsLabel
+  );
+
   let screen = {
     label,
     entity: toCamelCase(table.TABLE_NAME),
@@ -61,12 +76,7 @@ async function generateScreen(connection, owner, table, commentAsLabel) {
     name: singularIdentifier(table.TABLE_NAME),
     plural_name: pluralIdentifier(table.TABLE_NAME),
     type: "grid",
-    subfields: await generateFields(
-      connection,
-      owner,
-      table.TABLE_NAME,
-      commentAsLabel
-    ),
+    subfields: relationships.concat(subfields),
   };
 
   return screen;
@@ -74,17 +84,22 @@ async function generateScreen(connection, owner, table, commentAsLabel) {
 
 async function generateFields(connection, owner, tableName, commentAsLabel) {
   const result = await connection.execute(
-    `SELECT tc.column_name, tc.data_type, tc.data_length, tc.data_precision, tc.nullable, cc.COMMENTS  
+    `SELECT tc.column_name, tc.data_type, tc.data_length, tc.data_precision, tc.nullable, cc.COMMENTS, tc.TABLE_NAME, count(acc.CONSTRAINT_NAME) AS FOREIGNKEY  
     FROM all_tab_columns tc
     	LEFT JOIN ALL_COL_COMMENTS cc ON tc.OWNER = cc.OWNER AND tc.TABLE_NAME = cc.TABLE_NAME  AND tc.COLUMN_NAME = cc.COLUMN_NAME 
+    	LEFT JOIN ALL_CONSTRAINTS  ac ON ac.OWNER  = tc.OWNER  AND ac.TABLE_NAME = tc.TABLE_NAME AND ac.CONSTRAINT_TYPE = 'R'
+    	LEFT JOIN ALL_CONS_COLUMNS acc ON acc.OWNER  = ac.OWNER AND acc.CONSTRAINT_NAME = ac.CONSTRAINT_NAME AND acc.TABLE_NAME = tc.TABLE_NAME AND acc.COLUMN_NAME = tc.COLUMN_NAME 
     WHERE tc.owner = :owner AND tc.table_name = :tableName
-    ORDER BY tc.COLUMN_ID`,
+    GROUP BY tc.COLUMN_ID, tc.column_name, tc.data_type, tc.data_length, tc.data_precision, tc.nullable, cc.COMMENTS, tc.TABLE_NAME
+    ORDER BY tc.COLUMN_ID `,
     { owner, tableName }
   );
 
   let fields = [];
 
   for (let column of result.rows) {
+    if (column.FOREIGNKEY) continue;
+
     let label = "";
     if (commentAsLabel) {
       label = column.COMMENTS || normalizeText(column.COLUMN_NAME);
@@ -105,7 +120,12 @@ async function generateFields(connection, owner, tableName, commentAsLabel) {
   return fields;
 }
 
-async function findReferencedTables(connection, owner, tableName){
+async function generateRelationships(
+  connection,
+  owner,
+  tableName,
+  commentAsLabel
+) {
   const sql = `SELECT c.constraint_name, c.delete_rule, d.columns, c.r_owner,
               (SELECT r.table_name FROM sys.all_constraints r 
                   WHERE c.r_owner = r.owner AND c.r_constraint_name = r.constraint_name) AS R_TABLE,
@@ -144,8 +164,67 @@ async function findReferencedTables(connection, owner, tableName){
               AND c.constraint_name = d.constraint_name
             ORDER BY c.owner, c.table_name, c.constraint_name`;
 
-  const result = await connection.execute(sql, {owner, tableName})
-  
+  const result = await connection.execute(sql, { owner, tableName });
+
+  let fields = [];
+
+  for (let column of result.rows) {
+    let identifier = "";
+    if (column.COLUMNS.includes(",")) {
+      identifier = column.R_TABLE;
+    } else {
+      identifier = column.COLUMNS;
+    }
+
+    let label = "";
+    if (commentAsLabel && identifier == column.COLUMNS) {
+      const result = await connection.execute(
+        `SELECT cc.COMMENTS  
+        FROM ALL_COL_COMMENTS cc 
+        WHERE cc.OWNER = :owner 
+        AND cc.TABLE_NAME = :tableName 
+        AND cc.COLUMN_NAME = :columnName`,
+        { owner, tableName, columnName: column.COLUMNS }
+      );
+      if (result.rows.length > 0) {
+        label = result.rows[0].COMMENTS;
+      }
+    } else {
+      label = normalizeText(identifier);
+    }
+
+    const result = await connection.execute(
+      `SELECT CC.COLUMN_NAME  
+      FROM ALL_CONS_COLUMNS CC
+      WHERE CC.OWNER = :referencedOwner 
+        AND CC.TABLE_NAME = :referencedTableName 
+        AND CC.CONSTRAINT_NAME = :constraintName 
+      ORDER BY CC.POSITION`,
+      {
+        referencedOwner: column.R_OWNER,
+        referencedTableName: column.R_TABLE,
+        constraintName: column.R_CONSTRAINT_NAME,
+      }
+    );
+
+    const referencedColumns = result.rows
+      .map((item) => item.COLUMN_NAME)
+      .join(",");
+
+    fields.push({
+      id: identifier,
+      name: identifier,
+      column: column.COLUMNS,
+      label,
+      type: translateType(column.DATA_TYPE),
+      referencedTable: column.R_TABLE,
+      referencedSchema: column.R_OWNER,
+      referencedColumns: referencedColumns,
+      subfields: [],
+    });
+  }
+
+  return fields;
 }
 
 function translateType(type) {
