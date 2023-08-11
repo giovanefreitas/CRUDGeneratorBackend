@@ -105,6 +105,49 @@ async function generateFields(connection, owner, tableName, commentAsLabel) {
   return fields;
 }
 
+async function findReferencedTables(connection, owner, tableName){
+  const sql = `SELECT c.constraint_name, c.delete_rule, d.columns, c.r_owner,
+              (SELECT r.table_name FROM sys.all_constraints r 
+                  WHERE c.r_owner = r.owner AND c.r_constraint_name = r.constraint_name) AS R_TABLE,
+              c.r_constraint_name
+            FROM sys.all_constraints c,
+              (
+                  SELECT a.owner, a.table_name, a.constraint_name,
+                MAX(DECODE(position,1,substr(column_name,1,30),NULL) )
+                      ||  MAX(DECODE(position,2,',' || substr(column_name,1,30),NULL)) 
+                      ||  MAX( DECODE(position,3,',' || substr(column_name,1,30),NULL)) 
+                      ||  MAX(DECODE(position,4,',' || substr(column_name,1,30),NULL))
+                      ||  MAX(DECODE(position,5,',' ||  substr(column_name,1,30),NULL))
+                      ||  MAX(DECODE(position,6,',' ||  substr(column_name,1,30),NULL))
+                      ||  MAX(DECODE(position,7,',' ||  substr(column_name,1,30),NULL))
+                      ||  MAX(DECODE(position,8,',' ||  substr(column_name,1,30),NULL))
+                      ||  MAX(DECODE(position,9,',' ||  substr(column_name,1,30),NULL))
+                      ||  MAX(DECODE(position,10,',' ||  substr(column_name,1,30),NULL))
+                      ||  MAX(DECODE(position,11,',' ||  substr(column_name,1,30),NULL))
+                      ||  MAX(DECODE(position,12,',' ||  substr(column_name,1,30),NULL))
+                      ||  MAX(DECODE(position,13,',' ||  substr(column_name,1,30),NULL))
+                      ||  MAX(DECODE(position,14,',' ||  substr(column_name,1,30),NULL))
+                      ||  MAX(DECODE(position,15,',' ||  substr(column_name,1,30),NULL))
+                      ||  MAX(DECODE(position,16,',' ||  substr(column_name,1,30),NULL)) columns
+                  FROM sys.all_constraints a, sys.all_cons_columns b
+                  WHERE a.constraint_name = b.constraint_name 
+                      AND a.owner = b.owner
+                      AND a.constraint_type = 'R'
+                      AND substr(a.table_name,1,4) != 'BIN$'
+                      AND substr(a.table_name,1,3) != 'DR$'
+                      AND instr(upper(a.table_name),upper(:tableName) ) > 0
+                  GROUP BY a.owner, a.table_name, a.constraint_name
+              ) d
+            WHERE c.owner = :owner
+              AND c.owner = d.owner
+              AND c.table_name = d.table_name
+              AND c.constraint_name = d.constraint_name
+            ORDER BY c.owner, c.table_name, c.constraint_name`;
+
+  const result = await connection.execute(sql, {owner, tableName})
+  
+}
+
 function translateType(type) {
   switch (type) {
     case "VARCHAR2":
