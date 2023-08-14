@@ -39,7 +39,7 @@ router.post("/oracle", async (req, res) => {
 async function findTables(connection, owner) {
   const result = await connection.execute(
     `SELECT t.TABLE_NAME, c.COMMENTS  FROM all_tables t LEFT JOIN all_tab_comments c 
-    ON t.OWNER = c.OWNER AND t.TABLE_NAME  = c.TABLE_NAME  WHERE t.OWNER = :owner AND t.table_name = 'AUD_HIST_AUXILIAR_EMPRESA'
+    ON t.OWNER = c.OWNER AND t.TABLE_NAME  = c.TABLE_NAME  WHERE t.OWNER = :owner AND t.table_name = 'TB_INFRACAOAITE'
     ORDER BY t.TABLE_NAME `,
     { owner }
   );
@@ -204,12 +204,12 @@ async function generateRelationships(
       `SELECT CC.COLUMN_NAME  
       FROM ALL_CONS_COLUMNS CC
       WHERE CC.OWNER = :referencedOwner 
-        AND CC.TABLE_NAME = :referencedTableName 
+        AND CC.TABLE_NAME = :referencedTable 
         AND CC.CONSTRAINT_NAME = :constraintName 
       ORDER BY CC.POSITION`,
       {
         referencedOwner: column.R_OWNER,
-        referencedTableName: column.R_TABLE,
+        referencedTable: column.R_TABLE,
         constraintName: column.R_CONSTRAINT_NAME,
       }
     );
@@ -223,10 +223,15 @@ async function generateRelationships(
       name: identifier,
       column: column.COLUMNS,
       label,
-      type: translateType(column.DATA_TYPE),
+      type: "relationship",
+      widgetType: await determineRelationshipType(
+        connection,
+        column.R_OWNER,
+        column.R_TABLE
+      ),
       referencedTable: column.R_TABLE,
       referencedSchema: column.R_OWNER,
-      referencedColumns: referencedColumns,
+      referencedColumn: referencedColumns,
       subfields: [],
     });
   }
@@ -276,6 +281,18 @@ async function generateTables(connection, owner, tableName, commentAsLabel) {
   }
 
   return fields;
+}
+
+async function determineRelationshipType(connection, owner, table) {
+  const result = await connection.execute(
+    `select count(*) as COUNT_ROWS from ${owner}.${table}`
+  );
+
+  if (result.rows[0].COUNT_ROWS > 30) {
+    return "autocomplete";
+  } else {
+    return "select";
+  }
 }
 
 function translateType(type) {
