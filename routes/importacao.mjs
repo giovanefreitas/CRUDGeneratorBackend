@@ -39,7 +39,7 @@ router.post("/oracle", async (req, res) => {
 async function findTables(connection, owner) {
   const result = await connection.execute(
     `SELECT t.TABLE_NAME, c.COMMENTS  FROM all_tables t LEFT JOIN all_tab_comments c 
-    ON t.OWNER = c.OWNER AND t.TABLE_NAME  = c.TABLE_NAME  WHERE t.OWNER = :owner AND t.table_name = 'TB_INFRACAOAITE'
+    ON t.OWNER = c.OWNER AND t.TABLE_NAME  = c.TABLE_NAME  WHERE t.OWNER = :owner AND t.table_name = 'AUD_HIST_AUXILIAR_EMPRESA'
     ORDER BY t.TABLE_NAME `,
     { owner }
   );
@@ -273,7 +273,7 @@ async function generateTables(connection, owner, tableName, commentAsLabel) {
       id: table.TABLE_NAME,
       name: table.TABLE_NAME,
       schema: table.OWNER,
-      tableName: table.TABLE_NAME,
+      table: table.TABLE_NAME,
       label: normalizeText(table.TABLE_NAME),
       type: "table",
       subfields: relationships.concat(subfields),
