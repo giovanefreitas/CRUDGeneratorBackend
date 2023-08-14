@@ -120,6 +120,7 @@ async function generateFields(connection, owner, tableName, commentAsLabel) {
       column: column.COLUMN_NAME,
       label,
       type: translateType(column.DATA_TYPE),
+      cols: defineCols(column.DATA_TYPE, column.DATA_LENGTH),
       subfields: [],
     });
   }
@@ -276,6 +277,7 @@ async function generateTables(connection, owner, tableName, commentAsLabel) {
       table: table.TABLE_NAME,
       label: normalizeText(table.TABLE_NAME),
       type: "table",
+      cols: 12,
       subfields: relationships.concat(subfields),
     });
   }
@@ -318,6 +320,16 @@ function singularIdentifier(text) {
 
 function pluralIdentifier(text) {
   return text;
+}
+
+function defineCols(dataType, dataLength) {
+  if (dataType == "VARCHAR" || dataType == "VARCHAR2" || dataType == "CHAR") {
+    if (dataLength <= 30) return 4;
+    else if (dataLength <= 50) return 6;
+    else return 12;
+  } else if (dataType == "NUMBER" || dataType == "DATE") {
+    return 4;
+  } else return 12;
 }
 
 export default router;
