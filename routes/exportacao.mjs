@@ -4,6 +4,7 @@ import { ObjectId } from "mongodb";
 import { renderTemplate, readTemplateProject } from "../templates/index.mjs";
 import AdmZip from "adm-zip";
 import fs from "fs";
+import path from "path";
 
 const router = express.Router();
 
@@ -35,7 +36,10 @@ async function addFilesToZip(dirents, formData, zip, currentDir) {
         );
       }
     } else {
-      console.log("Adicioando arquivo estático: " + element.name);
+      console.log("Adicionando arquivo estático origem: " + urlPath);
+      console.log(
+        "Adicionando arquivo estático destino: " + currentDir + element.name
+      );
       zip.addLocalFile(urlPath, currentDir, element.name);
     }
   }

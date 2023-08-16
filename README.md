@@ -27,7 +27,7 @@ npm start
 
 4. Testando
 
-wget http://localhost:5050/exportar/64ac2f9f5cb711f1fd3c1e4d -O projeto.zip ; Expand-Archive "projeto.zip" -DestinationPath "./" -Force ; del projeto.zip
+wget http://localhost:5050/exportar/64da71ec5c4b03d5e7bc63ff -O projeto.zip ; Expand-Archive "projeto.zip" -DestinationPath "./" -Force ; del projeto.zip
 
 ## Modelo de dados
 

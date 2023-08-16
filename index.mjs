@@ -6,6 +6,14 @@ import cadastros from "./routes/cadastros.mjs";
 import exportacao from "./routes/exportacao.mjs";
 import importacao from "./routes/importacao.mjs";
 
+console.log("Node Version: " + process.version);
+let majorVersion = process.version.split(".")[0];
+majorVersion = majorVersion.slice(1);
+if (parseInt(majorVersion) < 20) {
+  console.error("Versão não suportada. É necessário um node >= v20");
+  process.exit(1);
+}
+
 const PORT = process.env.PORT || 5050;
 const app = express();
 
