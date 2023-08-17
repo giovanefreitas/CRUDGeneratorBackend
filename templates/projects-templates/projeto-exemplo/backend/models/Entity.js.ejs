@@ -1,0 +1,31 @@
+"use strict";
+
+module.exports = (sequelize, DataTypes) => {
+  const <%= screen.entity %> = sequelize.define(
+    "<%= screen.entity %>",
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
+      },
+      <% screen.subfields.forEach(function(field){ %>
+      <%= field.name %>: DataTypes.STRING,
+      <% }); %>
+    },
+    {
+      underscored: true,
+      paranoid: true,
+      tableName: "<%= screen.table %>",
+      createdAt: "dataCadastro",
+      updatedAt: "dataAlteracao",
+      deletedAt: "dataExclusao",
+      name: {
+        singular: "<%= screen.name %>",
+        plural: "<%= screen.plural_name %>",
+      },
+    }
+  );
+  
+  return <%= screen.entity %>;
+};

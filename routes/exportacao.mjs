@@ -22,7 +22,7 @@ async function addFilesToZip(dirents, formData, zip, currentDir) {
         currentDir + element.name + "/"
       );
     } else if (element.name.endsWith(".ejs")) {
-      if (element.name.startsWith("Entity")) {
+      if (element.name.includes("Entity")) {
         for (const screen of formData.screens) {
           zip.addFile(
             currentDir + element.name.replace("Entity", screen.entity).replace(/\.[^\.]+$/, ""),

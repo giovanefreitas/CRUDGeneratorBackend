@@ -1,0 +1,31 @@
+const express = require("express");
+const { autenticar } = require("../auth/guard");
+<% screens.forEach(function(screen){ %>
+const <%= screen.plural_name %> = require("./<%= screen.entity %>");
+<% }); %>
+const router = express.Router();
+
+/* GET home page. */
+router.get("/", (req, res, next) => {
+  res.send({ title: process.env.APP_TITLE });
+});
+
+router.get("/versao", (req, res) => {
+  res.status(200).json({
+    versao: process.env.APP_VERSAO,
+  });
+});
+<% screens.forEach(function(screen){ %>
+router.use("/<%= screen.plural_name %>", autenticar, <%= screen.plural_name %>);
+<% }); %>
+router.get("/versao", (req, res) => {
+  res.status(200).json({
+    versao: process.env.APP_VERSAO,
+  });
+});
+
+router.get("*", autenticar, function (req, res) {
+  res.status(404).json({ mensagem: "O recurso solicitado não existe." });
+});
+
+module.exports = router;

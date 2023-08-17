@@ -1,0 +1,15 @@
+const express = require('express');
+const { autenticar } = require('../auth/guard');
+const <%= screen.plural_name %> = require("../controllers/<%= screen.entity %>");
+
+const router = express.Router();
+
+router.get("/exportar", autenticar, <%= screen.plural_name %>.exportar);
+router.get("/:_id", autenticar, <%= screen.plural_name %>.recuperar);
+router.get("", autenticar, <%= screen.plural_name %>.pesquisar);
+router.put("/restaurar/:_id", autenticar, <%= screen.plural_name %>.restaurar);
+router.post("", autenticar, <%= screen.plural_name %>.criar);
+router.put("/:_id", autenticar, <%= screen.plural_name %>.alterar);
+router.delete("/:_id", autenticar, <%= screen.plural_name %>.excluir);
+
+module.exports = router;
