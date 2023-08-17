@@ -102,8 +102,13 @@ var parametrosBusca = ref({
 var totalRegistros = ref(0);
 var colunas = ref([
   { text: "Código", value: "id", sortable: true, width: "30em" },
-  { text: "Resumo", value: "resumo", sortable: true, width: "30em" },
-  { text: "Descrição", value: "descricao", sortable: true, width: "30em" },
+  <% screen.subfields.forEach(function(field){ %>
+  <% if(field.type != 'grid' && field.type != 'table' && 
+      field.type != 'address' && field.type != 'header'  && 
+      field.type != 'relationship'){ %>
+  { text: "<%= field.label %>", value: "<%= field.name %>", sortable: true, width: "30em" },
+  <% } %>
+  <% }); %>
   { text: "Ações", value: "acoes", sortable: false, width: "15em" },
 ]);
 

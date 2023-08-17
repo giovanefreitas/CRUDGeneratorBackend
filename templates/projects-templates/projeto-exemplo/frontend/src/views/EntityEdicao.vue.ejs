@@ -51,14 +51,18 @@
             <span>{{ <%= screen.name %>Selecionada.id }}</span>
           </div>
         </div>
-
-        <div class="col-8 mb-3">
-          <label for="input-nome" class="form-label">Resumo</label>
-          <input id="input-nome" class="form-control" v-model="<%= screen.name %>Selecionada.resumo" autofocus />
-        </div>
-        <div class="col-8 mb-3">
-          <label for="input-nome" class="form-label">Descrição</label>
-          <textarea id="input-nome" class="form-control" rows="4" v-model="<%= screen.name %>Selecionada.descricao" />
+        
+        <div class="row">
+          <% screen.subfields.forEach(function(field){ %>
+          <% if(field.type != 'grid' && field.type != 'table' && 
+              field.type != 'address' && field.type != 'header'  && 
+              field.type != 'relationship'){ %>
+          <div class="col-<%= field.cols %> mb-3">
+            <label for="input-nome" class="form-label"><%= field.label %></label>
+            <input id="input-nome" class="form-control" v-model="<%= screen.name %>Selecionada.<%= field.name %>" autofocus />
+          </div>
+          <% } %>
+          <% }); %>
         </div>
       </div>
     </form>
@@ -97,8 +101,15 @@ const route = useRoute();
 const $confirmar = inject("$confirmar");
 
 const <%= screen.name %>EmBranco = () => ({
-  resumo: "",
-  descricao: "",
+  <% screen.subfields.forEach(function(field){ %>
+  <% if(field.type != 'grid' && field.type != 'table' && 
+      field.type != 'address' && field.type != 'header'  && 
+      field.type != 'relationship'){ %>
+  <%= field.name %>: "",
+  <% } else if(field.type == 'relationship'){ %>
+  <%= field.name %>: { },
+  <% } %>
+  <% }); %>
 });
 
 var modeloAlterado = ref(false);

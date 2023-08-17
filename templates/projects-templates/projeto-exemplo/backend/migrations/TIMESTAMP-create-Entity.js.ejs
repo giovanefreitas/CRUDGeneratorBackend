@@ -14,7 +14,7 @@ module.exports = {
             field.type != 'relationship'){ %>
       <%= field.column %>: {
         allowNull: false,
-        type: Sequelize.DATE,
+        type: Sequelize.STRING,
       },
       <% } else if(field.type == 'grid'){ %>  
       //TODO: gerar colunas de um grid incluído
@@ -22,6 +22,10 @@ module.exports = {
       //TODO: field de um tipo não suportado: <%= field.name %> > <%= field.type %>
       <% } %>
       <% }); %>
+      id_tenant: {
+        allowNull: false,
+        type: Sequelize.INTEGER,
+      },
       data_cadastro: {
         allowNull: false,
         type: Sequelize.DATE,

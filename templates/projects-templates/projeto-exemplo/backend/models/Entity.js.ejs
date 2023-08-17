@@ -10,8 +10,16 @@ module.exports = (sequelize, DataTypes) => {
         primaryKey: true
       },
       <% screen.subfields.forEach(function(field){ %>
-      <%= field.name %>: DataTypes.STRING,
+      <% if(field.type != 'grid' && field.type != 'table' && 
+          field.type != 'address' && field.type != 'header'  && 
+          field.type != 'relationship'){ %>
+      <%= field.name %>: {
+        field: "<%= field.column %>",
+        type: DataTypes.STRING,
+      },
+      <% } %>
       <% }); %>
+      id_tenant: DataTypes.INTEGER,
     },
     {
       underscored: true,
