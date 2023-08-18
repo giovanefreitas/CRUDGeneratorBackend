@@ -1,3 +1,19 @@
+<% function renderFields(fields){ %>
+      <% fields.forEach(function(field){ %>
+      <% if(field.type != 'grid' && field.type != 'table' && 
+            field.type != 'address' && field.type != 'header'  && 
+            field.type != 'relationship'){ %>
+      <%= field.column %>: {
+        allowNull: false,
+        type: Sequelize.STRING,
+      },
+      <% } else if(field.type == 'grid'){ %>  
+      <%= renderFields(field.subfields) %>
+      <% } else { %>  
+      //TODO: field de um tipo não suportado: <%= field.name %> > <%= field.type %>
+      <% } %>
+      <% }); %>
+<% } %>
 'use strict';
 module.exports = {
   async up(queryInterface, Sequelize) {
@@ -8,20 +24,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      <% screen.subfields.forEach(function(field){ %>
-      <% if(field.type != 'grid' && field.type != 'table' && 
-            field.type != 'address' && field.type != 'header'  && 
-            field.type != 'relationship'){ %>
-      <%= field.column %>: {
-        allowNull: false,
-        type: Sequelize.STRING,
-      },
-      <% } else if(field.type == 'grid'){ %>  
-      //TODO: gerar colunas de um grid incluído
-      <% } else { %>  
-      //TODO: field de um tipo não suportado: <%= field.name %> > <%= field.type %>
-      <% } %>
-      <% }); %>
+      <%= renderFields(screen.subfields) %>
       id_tenant: {
         allowNull: false,
         type: Sequelize.INTEGER,

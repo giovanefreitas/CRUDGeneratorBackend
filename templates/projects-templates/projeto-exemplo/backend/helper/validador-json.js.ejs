@@ -1,3 +1,21 @@
+<% function renderFields(fields){ %>
+    <% fields.forEach(function(field){ %>
+    <% if(field.type != 'grid' && field.type != 'table' && 
+        field.type != 'address' && field.type != 'header'  && 
+        field.type != 'relationship'){ %>
+    <%= field.name %>: { type: 'string', nullable: true },
+    <% } else if(field.type == 'relationship'){ %>
+    id_<%= field.name %>: { type: 'integer', nullable: true },
+    //<%= field.name %>: {
+    //  oneOf: [{ type: 'integer' }, { $ref: '#/schemas/<%= field.name %>' }],
+    //},
+    <% } else if(field.type == 'grid'){ %>  
+    <%= renderFields(field.subfields) %>
+    <% } else { %>  
+    //TODO: field de um tipo não suportado: <%= field.name %> > <%= field.type %>
+    <% } %>
+    <% }); %>
+<% } %>
 const lodash = require('lodash');
 const assert = require('assert');
 const Ajv = require('ajv');
@@ -9,18 +27,7 @@ const schema<%= screen.entity %> = {
   type: 'object',
   properties: {
     id: { type: 'integer' },
-    <% screen.subfields.forEach(function(field){ %>
-    <% if(field.type != 'grid' && field.type != 'table' && 
-        field.type != 'address' && field.type != 'header'  && 
-        field.type != 'relationship'){ %>
-    <%= field.name %>: { type: 'string', nullable: true },
-    <% } else if(field.type == 'relationship'){ %>
-    id_<%= field.name %>: { type: 'integer', nullable: true },
-    //<%= field.name %>: {
-    //  oneOf: [{ type: 'integer' }, { $ref: '#/schemas/<%= field.name %>' }],
-    //},
-    <% } %>
-    <% }); %>
+    <%= renderFields(screen.subfields) %>
     dataCadastro: { type: 'string', format: 'date-time' },
     dataAlteracao: { type: 'string', format: 'date-time' },
     dataExclusao: { type: 'string', nullable: true, format: 'date-time' },

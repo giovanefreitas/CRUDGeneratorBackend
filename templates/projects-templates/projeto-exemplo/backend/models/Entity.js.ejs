@@ -1,3 +1,19 @@
+<% function renderFields(fields){ %>
+    <% fields.forEach(function(field){ %>
+    <% if(field.type != 'grid' && field.type != 'table' && 
+        field.type != 'address' && field.type != 'header'  && 
+        field.type != 'relationship'){ %>
+    <%= field.name %>: {
+      field: "<%= field.column %>",
+      type: DataTypes.STRING,
+    },
+    <% } else if(field.type == 'grid'){ %>  
+    <%= renderFields(field.subfields) %>
+    <% } else { %>  
+    //TODO: field de um tipo não suportado: <%= field.name %> > <%= field.type %>
+    <% } %>
+    <% }); %>
+<% } %>
 "use strict";
 
 module.exports = (sequelize, DataTypes) => {
@@ -9,16 +25,7 @@ module.exports = (sequelize, DataTypes) => {
         autoIncrement: true,
         primaryKey: true
       },
-      <% screen.subfields.forEach(function(field){ %>
-      <% if(field.type != 'grid' && field.type != 'table' && 
-          field.type != 'address' && field.type != 'header'  && 
-          field.type != 'relationship'){ %>
-      <%= field.name %>: {
-        field: "<%= field.column %>",
-        type: DataTypes.STRING,
-      },
-      <% } %>
-      <% }); %>
+      <%= renderFields(screen.subfields) %>
       id_tenant: DataTypes.INTEGER,
     },
     {
