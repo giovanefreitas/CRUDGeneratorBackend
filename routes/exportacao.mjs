@@ -9,6 +9,9 @@ import path from "path";
 const router = express.Router();
 
 async function addFilesToZip(dirents, formData, zip, currentDir) {
+  let today = new Date();
+  let currentDateIso = today.toISOString().split("T")[0];
+
   for (const element of dirents) {
     let urlPath = element.path + "/" + element.name;
     if (element.isDirectory()) {
@@ -36,6 +39,7 @@ async function addFilesToZip(dirents, formData, zip, currentDir) {
             currentDir +
               element.name
                 .replace("Entity", screen.entity)
+                .replace("TIMESTAMP", currentDateIso)
                 .replace(/\.[^\.]+$/, ""),
             Buffer.from(renderTemplate(urlPath, { screen }), "utf8")
           );
