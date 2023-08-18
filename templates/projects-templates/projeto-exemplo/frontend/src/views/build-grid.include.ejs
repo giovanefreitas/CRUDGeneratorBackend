@@ -1,0 +1,14 @@
+          <% fields.forEach(function(field){ %>
+          <% if(field.type != 'grid' && field.type != 'table' && 
+              field.type != 'address' && field.type != 'header'  && 
+              field.type != 'relationship'){ %>
+          <div class="col-<%= field.cols %> mb-3">
+              <label for="input-nome" class="form-label"><%= field.label %></label>
+              <input id="input-nome" class="form-control" v-model="<%= screen.name %>Selecionada.<%= field.name %>" autofocus />
+          </div>
+          <% } else if (field.type == 'grid') { %>
+          <div class="col-<%= field.cols %> mb-3">
+            <%- include('build-grid.include.ejs', {fields: field.subfields}); %>
+          </div>
+          <% } %>
+          <% }); %>

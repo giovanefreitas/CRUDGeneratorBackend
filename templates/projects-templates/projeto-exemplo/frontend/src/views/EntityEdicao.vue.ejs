@@ -53,23 +53,14 @@
         </div>
         
         <div class="row">
-          <% screen.subfields.forEach(function(field){ %>
-          <% if(field.type != 'grid' && field.type != 'table' && 
-              field.type != 'address' && field.type != 'header'  && 
-              field.type != 'relationship'){ %>
-          <div class="col-<%= field.cols %> mb-3">
-            <label for="input-nome" class="form-label"><%= field.label %></label>
-            <input id="input-nome" class="form-control" v-model="<%= screen.name %>Selecionada.<%= field.name %>" autofocus />
-          </div>
-          <% } %>
-          <% }); %>
+          <%- include('build-grid.include.ejs', {fields: screen.subfields}); %>
         </div>
       </div>
     </form>
 
     <div class="btn-toolbar mb-2 mb-md-0">
       <div class="btn-group me-2">
-        <button type="button" class="btn btn-outline-danger" @click="router.push('/<%= screen.plural_name %>')">
+        <button type="button" class="btn btn-outline-danger" @click="router.push('/lista-<%= screen.name %>')">
           Cancelar
         </button>
       </div>

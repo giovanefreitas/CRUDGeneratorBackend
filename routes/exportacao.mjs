@@ -22,14 +22,26 @@ async function addFilesToZip(dirents, formData, zip, currentDir) {
         currentDir + element.name + "/"
       );
     } else if (element.name.endsWith(".ejs")) {
+      if (element.name.endsWith(".include.ejs")) continue;
+
       if (element.name.includes("Entity")) {
         for (const screen of formData.screens) {
+          console.log(
+            "Adicionando arquivo de Entity: " +
+              element.name +
+              " > " +
+              screen.name
+          );
           zip.addFile(
-            currentDir + element.name.replace("Entity", screen.entity).replace(/\.[^\.]+$/, ""),
+            currentDir +
+              element.name
+                .replace("Entity", screen.entity)
+                .replace(/\.[^\.]+$/, ""),
             Buffer.from(renderTemplate(urlPath, { screen }), "utf8")
           );
         }
       } else {
+        console.log("Adicionando arquivo de template: " + element.name);
         zip.addFile(
           currentDir + element.name.replace(/\.[^\.]+$/, ""),
           Buffer.from(renderTemplate(urlPath, formData), "utf8")
