@@ -11,6 +11,7 @@ const router = express.Router();
 async function addFilesToZip(dirents, formData, zip, currentDir) {
   let today = new Date();
   let currentDateIso = today.toISOString().split("T")[0];
+  let entities = findEntities(formData);
 
   for (const element of dirents) {
     let urlPath = element.path + "/" + element.name;
@@ -28,20 +29,20 @@ async function addFilesToZip(dirents, formData, zip, currentDir) {
       if (element.name.endsWith(".include.ejs")) continue;
 
       if (element.name.includes("Entity")) {
-        for (const screen of formData.screens) {
+        for (const entity of entities) {
           console.log(
             "Adicionando arquivo de Entity: " +
               element.name +
               " > " +
-              screen.name
+              entity.name
           );
           zip.addFile(
             currentDir +
               element.name
-                .replace("Entity", screen.entity)
+                .replace("Entity", entity.entity)
                 .replace("TIMESTAMP", currentDateIso)
                 .replace(/\.[^\.]+$/, ""),
-            Buffer.from(renderTemplate(urlPath, { screen }), "utf8")
+            Buffer.from(renderTemplate(urlPath, { screen: entity }), "utf8")
           );
         }
       } else {
@@ -81,5 +82,35 @@ router.get("/:id", async (req, res) => {
     });
   }
 });
+
+function findEntities(formData) {
+  let entities = formData.screens.slice(0);
+
+  for (let screen of formData.screens) {
+    for (let field of screen.subfields) {
+      if (field.type == "table") {
+        entities.push(field);
+      } else if (field.type == "grid") {
+        entities = entities.concat(findCompositions(field));
+      }
+    }
+  }
+
+  return entities;
+}
+
+function findCompositions(field) {
+  let entities = [];
+
+  for (let subfield of field.subfields) {
+    if (subfield.type == "table") {
+      entities.push(subfield);
+    } else if (subfield.type == "grid") {
+      entities = entities.concat(findCompositions(subfield));
+    }
+  }
+
+  return entities;
+}
 
 export default router;
