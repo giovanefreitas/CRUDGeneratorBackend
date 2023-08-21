@@ -14,6 +14,19 @@
     <% } %>
     <% }); %>
 <% } %>
+<% function renderAssociations(fields){ %>
+    <% fields.forEach(function(field){ %>
+      <% if(field.type == 'relationship'){ %>
+        <%= screen.entity %>.belongsTo(models.<%= field.referencedEntity %>, {
+          foreignKey: { name: "<%= field.column %>", allowNull: false },
+          onDelete: "RESTRICT",
+          onUpdate: "RESTRICT",
+        });
+      <% } else if(field.type == 'grid'){ %>  
+        <%= renderAssociations(field.subfields) %>
+      <% } %>
+    <% }); %>
+<% } %>
 "use strict";
 
 module.exports = (sequelize, DataTypes) => {
@@ -41,6 +54,10 @@ module.exports = (sequelize, DataTypes) => {
       },
     }
   );
-  
+
+  <%= screen.entity %>.associate = function (models) {
+  <%= renderAssociations(screen.subfields) %>
+  };
+
   return <%= screen.entity %>;
 };

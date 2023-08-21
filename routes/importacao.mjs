@@ -212,6 +212,7 @@ async function generateRelationships(
         referencedOwner: column.R_OWNER,
         referencedTable: column.R_TABLE,
         constraintName: column.R_CONSTRAINT_NAME,
+        referencedEntity: column.R_TABLE,
       }
     );
 
