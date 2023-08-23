@@ -1,18 +1,21 @@
 import db from "../models/index.mjs";
+import createDebug from "debug";
+
+const debug = createDebug("project-controller");
 
 const Project = db.projects;
 
 // Create and Save a new Project
 const create = (req, res) => {
   // Validate request
-  if (!req.body.title) {
-    res.status(400).send({ message: "Content can not be empty!" });
+  if (!req.body.name) {
+    res.status(400).send({ message: "Name can not be empty!" });
     return;
   }
 
   // Create a Project
   const project = new Project({
-    title: req.body.title,
+    name: req.body.name,
     description: req.body.description,
     published: req.body.published ? req.body.published : false,
   });
@@ -24,6 +27,7 @@ const create = (req, res) => {
       res.send(data);
     })
     .catch((err) => {
+      debug(err)
       res.status(500).send({
         message:
           err.message || "Some error occurred while creating the Project.",
@@ -33,9 +37,9 @@ const create = (req, res) => {
 
 // Retrieve all Projects from the database.
 const findAll = (req, res) => {
-  const title = req.query.title;
-  var condition = title
-    ? { title: { $regex: new RegExp(title), $options: "i" } }
+  const name = req.query.name;
+  var condition = name
+    ? { name: { $regex: new RegExp(name), $options: "i" } }
     : {};
 
   Project.find(condition)

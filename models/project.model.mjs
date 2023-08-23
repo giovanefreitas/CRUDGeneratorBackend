@@ -1,7 +1,7 @@
 export default (mongoose) => {
   var schema = mongoose.Schema(
     {
-      title: String,
+      name: String,
       description: String,
       published: Boolean,
     },
