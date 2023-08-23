@@ -2,9 +2,8 @@ import express from "express";
 import cors from "cors";
 import "./loadEnvironment.mjs";
 import "express-async-errors";
-import cadastros from "./routes/cadastros.mjs";
-import exportacao from "./routes/exportacao.mjs";
-import importacao from "./routes/importacao.mjs";
+import db from "./models/index.mjs";
+import configureRoutes from "./routes/index.mjs";
 
 console.log("Node Version: " + process.version);
 let majorVersion = process.version.split(".")[0];
@@ -21,15 +20,22 @@ app.use(cors());
 app.use(express.json());
 
 // Load the /cadastros routes
-app.use("/cadastros", cadastros);
-app.use("/exportar", exportacao);
-app.use("/importar", importacao);
+app.use("/api", configureRoutes());
 
 // Global error handling
 app.use((err, _req, res, next) => {
   console.log(err);
   res.status(500).send("Ocorreu um erro inesperado.");
 });
+
+db.connect()
+  .then(() => {
+    console.log("Connected to the database!");
+  })
+  .catch((err) => {
+    console.log("Cannot connect to the database!", err);
+    process.exit();
+  });
 
 // start the Express server
 app.listen(PORT, () => {

@@ -1,5 +1,5 @@
 import express from "express";
-import db from "../db/conn.mjs";
+import db from "../model/index.mjs";
 import { ObjectId } from "mongodb";
 import { renderTemplate, readTemplateProject } from "../templates/index.mjs";
 import AdmZip from "adm-zip";
