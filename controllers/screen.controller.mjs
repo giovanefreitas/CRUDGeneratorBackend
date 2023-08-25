@@ -1,11 +1,12 @@
+import { ObjectId } from "mongodb";
 import db from "../models/index.mjs";
 import createDebug from "debug";
 
-const debug = createDebug("project-controller");
+const debug = createDebug("screen-controller");
 
-const Project = db.projects;
+const Screen = db.screens;
 
-// Create and Save a new Project
+// Create and Save a new Screen
 const create = (req, res) => {
   // Validate request
   if (!req.body.name) {
@@ -13,36 +14,17 @@ const create = (req, res) => {
     return;
   }
 
-  // Create a Project
-  const project = new Project({
+  // Create a Screen
+  const screen = new Screen({
     name: req.body.name,
     description: req.body.description,
     published: req.body.published ? req.body.published : false,
+    project_id: new ObjectId(req.body.project_id),
   });
 
-  // Save Project in the database
-  project
-    .save(project)
-    .then((data) => {
-      res.send(data);
-    })
-    .catch((err) => {
-      debug(err)
-      res.status(500).send({
-        message:
-          err.message || "Some error occurred while creating the Project.",
-      });
-    });
-};
-
-// Retrieve all Projects from the database.
-const findAll = (req, res) => {
-  const name = req.query.name;
-  var condition = name
-    ? { name: { $regex: new RegExp(name), $options: "i" } }
-    : {};
-
-  Project.find(condition)
+  // Save Screen in the database
+  screen
+    .save(screen)
     .then((data) => {
       res.send(data);
     })
@@ -50,30 +32,53 @@ const findAll = (req, res) => {
       debug(err);
       res.status(500).send({
         message:
-          err.message || "Some error occurred while retrieving projects.",
+          err.message || "Some error occurred while creating the Screen.",
       });
     });
 };
 
-// Find a single Project with an id
+// Retrieve all Screens from the database.
+const findAll = (req, res) => {
+  let condition = {};
+
+  if (!req.query.project) {
+    res.status(400).send({ message: "ID do projeto não informado!" });
+    return;
+  }
+
+  condition.project_id = new ObjectId(req.query.project);
+
+  Screen.find(condition)
+    .then((data) => {
+      res.send(data);
+    })
+    .catch((err) => {
+      debug(err);
+      res.status(500).send({
+        message: err.message || "Some error occurred while retrieving screens.",
+      });
+    });
+};
+
+// Find a single Screen with an id
 const findOne = (req, res) => {
   const id = req.params.id;
 
-  Project.findById(id)
+  Screen.findById(id)
     .then((data) => {
       if (!data)
-        res.status(404).send({ message: "Not found Project with id " + id });
+        res.status(404).send({ message: "Not found Screen with id " + id });
       else res.send(data);
     })
     .catch((err) => {
       debug(err);
       res
         .status(500)
-        .send({ message: "Error retrieving Project with id=" + id });
+        .send({ message: "Error retrieving Screen with id=" + id });
     });
 };
 
-// Update a Project by the id in the request
+// Update a Screen by the id in the request
 const updateOne = (req, res) => {
   if (!req.body) {
     return res.status(400).send({
@@ -83,74 +88,73 @@ const updateOne = (req, res) => {
 
   const id = req.params.id;
 
-  Project.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
+  Screen.findByIdAndUpdate(id, req.body, { useFindAndModify: false })
     .then((data) => {
       if (!data) {
         res.status(404).send({
-          message: `Cannot update Project with id=${id}. Maybe Project was not found!`,
+          message: `Cannot update Screen with id=${id}. Maybe Screen was not found!`,
         });
-      } else res.send({ message: "Project was updated successfully." });
+      } else res.send({ message: "Screen was updated successfully." });
     })
     .catch((err) => {
       debug(err);
       res.status(500).send({
-        message: "Error updating Project with id=" + id,
+        message: "Error updating Screen with id=" + id,
       });
     });
 };
 
-// Delete a Project with the specified id in the request
+// Delete a Screen with the specified id in the request
 const deleteOne = (req, res) => {
   const id = req.params.id;
 
-  Project.findByIdAndRemove(id)
+  Screen.findByIdAndRemove(id)
     .then((data) => {
       if (!data) {
         res.status(404).send({
-          message: `Cannot delete Project with id=${id}. Maybe Project was not found!`,
+          message: `Cannot delete Screen with id=${id}. Maybe Screen was not found!`,
         });
       } else {
         res.send({
-          message: "Project was deleted successfully!",
+          message: "Screen was deleted successfully!",
         });
       }
     })
     .catch((err) => {
       debug(err);
       res.status(500).send({
-        message: "Could not delete Project with id=" + id,
+        message: "Could not delete Screen with id=" + id,
       });
     });
 };
 
-// Delete all Projects from the database.
+// Delete all Screens from the database.
 const deleteAll = (req, res) => {
-  Project.deleteMany({})
+  Screen.deleteMany({})
     .then((data) => {
       res.send({
-        message: `${data.deletedCount} Projects were deleted successfully!`,
+        message: `${data.deletedCount} Screens were deleted successfully!`,
       });
     })
     .catch((err) => {
       debug(err);
       res.status(500).send({
         message:
-          err.message || "Some error occurred while removing all projects.",
+          err.message || "Some error occurred while removing all screens.",
       });
     });
 };
 
-// Find all published Projects
+// Find all published Screens
 const findAllPublished = (req, res) => {
-  Project.find({ published: true })
+  Screen.find({ published: true })
     .then((data) => {
       res.send(data);
     })
     .catch((err) => {
       debug(err);
       res.status(500).send({
-        message:
-          err.message || "Some error occurred while retrieving projects.",
+        message: err.message || "Some error occurred while retrieving screens.",
       });
     });
 };

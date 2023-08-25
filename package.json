@@ -11,7 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --single-quote --check .",
     "prepare": "cd ../ && husky install server/.husky",
-    "dev": "nodemon --experimental-modules index.mjs"
+    "dev": "cross-env DEBUG=* nodemon --experimental-modules index.mjs"
   },
   "dependencies": {
     "adm-zip": "^0.5.10",
@@ -25,6 +25,7 @@
     "oracledb": "^6.0.3"
   },
   "devDependencies": {
+    "cross-env": "^7.0.3",
     "eslint": "^8.0.0",
     "husky": "^7.0.2",
     "lint-staged": "^11.2.3",
