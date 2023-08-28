@@ -8,7 +8,7 @@
           </div>
           <% } else if (field.type == 'grid') { %>
           <div class="col-<%= field.cols %> mb-3">
-            <%- include('build-grid.include.ejs', {fields: field.subfields}); %>
+            <%- include('build-grid.include.ejs', {fields: field.fields}); %>
           </div>
           <% } else if (field.type == 'table') { %>
           <div class="col-<%= field.cols %> mb-3">
@@ -16,7 +16,7 @@
               <thead>
                 <tr>
                   <th scope="col">#</th>
-                  <% field.subfields.forEach(function(column){ %>
+                  <% field.fields.forEach(function(column){ %>
                   <th scope="col"><%= column.label %></th>
                   <% }) %>
                 </tr>
@@ -24,7 +24,7 @@
               <tbody>
                 <tr v-for="item, index of <%= screen.name %>Selecionada.<%= field.name %>">
                   <th scope="row">{{ index + 1 }}</th>
-                  <% field.subfields.forEach(function(column){ %>
+                  <% field.fields.forEach(function(column){ %>
                     <td scope="col">{{ item.<%= column.name %> }}</td>
                   <% }) %>
                 </tr>

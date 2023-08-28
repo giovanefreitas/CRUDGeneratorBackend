@@ -87,7 +87,7 @@ function findEntities(formData) {
   let entities = formData.screens.slice(0);
 
   for (let screen of formData.screens) {
-    for (let field of screen.subfields) {
+    for (let field of screen.fields) {
       if (field.type == "table") {
         entities.push(field);
       } else if (field.type == "grid") {
@@ -102,7 +102,7 @@ function findEntities(formData) {
 function findCompositions(field) {
   let entities = [];
 
-  for (let subfield of field.subfields) {
+  for (let subfield of field.fields) {
     if (subfield.type == "table") {
       entities.push(subfield);
     } else if (subfield.type == "grid") {

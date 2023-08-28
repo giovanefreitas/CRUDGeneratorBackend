@@ -10,7 +10,7 @@
     //  oneOf: [{ type: 'integer' }, { $ref: '#/schemas/<%= field.name %>' }],
     //},
     <% } else if(field.type == 'grid'){ %>  
-    <%= renderFields(field.subfields) %>
+    <%= renderFields(field.fields) %>
     <% } else { %>  
     //TODO: field de um tipo não suportado: <%= field.name %> > <%= field.type %>
     <% } %>
@@ -27,7 +27,7 @@ const schema<%= screen.entity %> = {
   type: 'object',
   properties: {
     id: { type: 'integer' },
-    <%= renderFields(screen.subfields) %>
+    <%= renderFields(screen.fields) %>
     dataCadastro: { type: 'string', format: 'date-time' },
     dataAlteracao: { type: 'string', format: 'date-time' },
     dataExclusao: { type: 'string', nullable: true, format: 'date-time' },

@@ -53,7 +53,7 @@
         </div>
         
         <div class="row">
-          <%- include('build-grid.include.ejs', {fields: screen.subfields, screen: screen}); %>
+          <%- include('build-grid.include.ejs', {fields: screen.fields, screen: screen}); %>
         </div>
       </div>
     </form>
@@ -92,7 +92,7 @@ const route = useRoute();
 const $confirmar = inject("$confirmar");
 
 const <%= screen.name %>EmBranco = () => ({
-  <% screen.subfields.forEach(function(field){ %>
+  <% screen.fields.forEach(function(field){ %>
   <% if(field.type != 'grid' && field.type != 'table' && 
       field.type != 'address' && field.type != 'header'  && 
       field.type != 'relationship'){ %>

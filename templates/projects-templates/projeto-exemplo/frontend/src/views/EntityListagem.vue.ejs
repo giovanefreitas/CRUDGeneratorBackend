@@ -102,7 +102,7 @@ var parametrosBusca = ref({
 var totalRegistros = ref(0);
 var colunas = ref([
   { text: "Código", value: "id", sortable: true, width: "30em" },
-  <% screen.subfields.forEach(function(field){ %>
+  <% screen.fields.forEach(function(field){ %>
   <% if(field.type != 'grid' && field.type != 'table' && 
       field.type != 'address' && field.type != 'header'  && 
       field.type != 'relationship'){ %>

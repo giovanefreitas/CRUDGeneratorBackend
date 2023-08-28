@@ -62,7 +62,7 @@ async function generateScreen(connection, owner, table, commentAsLabel) {
     commentAsLabel
   );
 
-  const subfields = await generateFields(
+  const fields = await generateFields(
     connection,
     owner,
     table.TABLE_NAME,
@@ -83,7 +83,7 @@ async function generateScreen(connection, owner, table, commentAsLabel) {
     name: singularIdentifier(table.TABLE_NAME),
     plural_name: pluralIdentifier(table.TABLE_NAME),
     type: "grid",
-    subfields: relationships.concat(subfields).concat(tables),
+    fields: relationships.concat(fields).concat(tables),
   };
 
   return screen;
@@ -121,7 +121,7 @@ async function generateFields(connection, owner, tableName, commentAsLabel) {
       label,
       type: translateType(column.DATA_TYPE),
       cols: defineCols(column.DATA_TYPE, column.DATA_LENGTH),
-      subfields: [],
+      fields: [],
     });
   }
 
@@ -233,7 +233,7 @@ async function generateRelationships(
       referencedTable: column.R_TABLE,
       referencedSchema: column.R_OWNER,
       referencedColumn: referencedColumns,
-      subfields: [],
+      fields: [],
     });
   }
 
@@ -263,7 +263,7 @@ async function generateTables(connection, owner, tableName, commentAsLabel) {
       commentAsLabel
     );
 
-    const subfields = await generateFields(
+    const fields = await generateFields(
       connection,
       owner,
       table.TABLE_NAME,
@@ -278,7 +278,7 @@ async function generateTables(connection, owner, tableName, commentAsLabel) {
       label: normalizeText(table.TABLE_NAME),
       type: "table",
       cols: 12,
-      subfields: relationships.concat(subfields),
+      fields: relationships.concat(fields),
     });
   }
 

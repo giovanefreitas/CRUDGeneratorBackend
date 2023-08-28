@@ -8,7 +8,7 @@
       type: DataTypes.STRING,
     },
     <% } else if(field.type == 'grid'){ %>  
-    <%= renderFields(field.subfields) %>
+    <%= renderFields(field.fields) %>
     <% } else { %>  
     //TODO: field de um tipo não suportado: <%= field.name %> > <%= field.type %>
     <% } %>
@@ -23,7 +23,7 @@
           onUpdate: "RESTRICT",
         });
       <% } else if(field.type == 'grid'){ %>  
-        <%= renderAssociations(field.subfields) %>
+        <%= renderAssociations(field.fields) %>
       <% } %>
     <% }); %>
 <% } %>
@@ -38,7 +38,7 @@ module.exports = (sequelize, DataTypes) => {
         autoIncrement: true,
         primaryKey: true
       },
-      <%= renderFields(screen.subfields) %>
+      <%= renderFields(screen.fields) %>
       id_tenant: DataTypes.INTEGER,
     },
     {
@@ -56,7 +56,7 @@ module.exports = (sequelize, DataTypes) => {
   );
 
   <%= screen.entity %>.associate = function (models) {
-  <%= renderAssociations(screen.subfields) %>
+  <%= renderAssociations(screen.fields) %>
   };
 
   return <%= screen.entity %>;

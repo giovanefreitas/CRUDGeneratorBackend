@@ -42,7 +42,7 @@ wget http://localhost:5050/exportar/64da71ec5c4b03d5e7bc63ff -O projeto.zip ; Ex
 			"label": "Cadastro de produto",
             "entity": "Produto",
 			"type": "grid",
-			"subfields": [...]
+			"fields": [...]
         },
         ...
     ]
@@ -51,7 +51,7 @@ wget http://localhost:5050/exportar/64da71ec5c4b03d5e7bc63ff -O projeto.zip ; Ex
 Screen element:
 
 {
-    "id": "subfields_0",
+    "id": "fields_0",
     "subheader_update": true,  <<<<< IGNORAR NO FRONTEND
     "order_rank": 0,  <<<<< IGNORAR NO FRONTEND
     "name": "header",
@@ -60,7 +60,7 @@ Screen element:
     "type": "header",
     "tagname": "h1",
     "textalign": "text-left",
-    "subfields": [],
+    "fields": [],
     "active": true,
     "placeholder": "CEP",
 }
