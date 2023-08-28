@@ -2,7 +2,8 @@ import { ObjectId } from "mongodb";
 
 export default (mongoose) => {
   let FieldSchema = new mongoose.Schema({
-    property: String, //ID da propriedade na entidade
+    id: String, //ID da propriedade na entidade
+    name: String, //Nome da propriedade na entidade
     type: String, //Tipo de dado do atributo
     widgetType: String, //Tipo de input usado na interface do usuário
     label: String, //exibição na tela do sistema gerado
