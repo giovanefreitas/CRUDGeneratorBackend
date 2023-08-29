@@ -1,3 +1,5 @@
+import { ObjectId } from "mongodb";
+
 export default (mongoose) => {
   let schema = mongoose.Schema(
     {
@@ -8,6 +10,11 @@ export default (mongoose) => {
         validate: (value) => {
           return value && value.length > 0;
         },
+      },
+      project_id: {
+        //Referência ao projeto
+        type: ObjectId,
+        required: true,
       },
       label: String, //Descrição usada em títulos e labels
       dbTable: String, //Nome da databela onde a entidade será persistida

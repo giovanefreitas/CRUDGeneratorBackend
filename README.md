@@ -56,7 +56,6 @@ Screen element:
     "order_rank": 0,  <<<<< IGNORAR NO FRONTEND
     "name": "header",
     "label": "Título",
-    "label_display": "Título da seção",
     "type": "header",
     "tagname": "h1",
     "textalign": "text-left",
