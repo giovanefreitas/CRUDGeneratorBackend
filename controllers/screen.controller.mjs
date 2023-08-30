@@ -19,7 +19,11 @@ const create = (req, res) => {
     name: req.body.name,
     description: req.body.description,
     published: req.body.published ? req.body.published : false,
+    labelMenu: req.body.labelMenu,
+    title: req.body.title,
+    subtitle: req.body.subtitle,
     project_id: new ObjectId(req.body.project_id),
+    referenced_entity_id: new ObjectId(req.body.referenced_entity_id),
   });
 
   // Save Screen in the database
