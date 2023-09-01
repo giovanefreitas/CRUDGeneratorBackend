@@ -5,13 +5,39 @@ import createDebug from "debug";
 const debug = createDebug("screen-controller");
 
 const Screen = db.screens;
+const Entity = db.entities;
 
 // Create and Save a new Screen
-const create = (req, res) => {
+const create = async (req, res) => {
   // Validate request
   if (!req.body.name) {
     res.status(400).send({ message: "Name can not be empty!" });
     return;
+  }
+
+  let entityId;
+  if (!req.body.referenced_entity_id) {
+    let entity = new Entity({
+      name: req.body.name,
+      description: req.body.description,
+      published: req.body.published ? req.body.published : false,
+      project_id: new ObjectId(req.body.project_id),
+    });
+
+    try {
+      entity = await entity.save(entity);
+    } catch (err) {
+      debug(err);
+      res.status(500).send({
+        message:
+          err.message || "Some error occurred while creating the Entity.",
+      });
+      return;
+    }
+
+    entityId = new ObjectId(entity._id);
+  } else {
+    entityId = new ObjectId(req.body.referenced_entity_id);
   }
 
   // Create a Screen
@@ -19,11 +45,11 @@ const create = (req, res) => {
     name: req.body.name,
     description: req.body.description,
     published: req.body.published ? req.body.published : false,
-    labelMenu: req.body.labelMenu,
+    menuLabel: req.body.menuLabel,
     title: req.body.title,
     subtitle: req.body.subtitle,
     project_id: new ObjectId(req.body.project_id),
-    referenced_entity_id: new ObjectId(req.body.referenced_entity_id),
+    referenced_entity_id: entityId,
   });
 
   // Save Screen in the database

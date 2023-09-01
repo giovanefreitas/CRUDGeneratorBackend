@@ -27,7 +27,7 @@ export default (mongoose) => {
       name: String, //Nome interno da tela (usado em variáveis)
       title: String, //exibição na tela do sistema gerado
       subtitle: String, //descrição adicional da tela, exibida no sistema gerado
-      labelMenu: String, //nome exibido nos menus da aplicação
+      menuLabel: String, //nome exibido nos menus da aplicação
       fields: [FieldSchema], //sub componentes
       project_id: {
         //Referência ao projeto
